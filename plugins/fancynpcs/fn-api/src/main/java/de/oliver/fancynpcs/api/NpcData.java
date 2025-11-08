@@ -3,6 +3,7 @@ package de.oliver.fancynpcs.api;
 import de.oliver.fancynpcs.api.actions.ActionTrigger;
 import de.oliver.fancynpcs.api.actions.NpcAction;
 import de.oliver.fancynpcs.api.skins.SkinData;
+import de.oliver.fancynpcs.api.utils.MovementPath;
 import de.oliver.fancynpcs.api.utils.NpcEquipmentSlot;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
@@ -41,6 +42,9 @@ public class NpcData {
     private float scale;
     private int visibilityDistance;
     private Map<NpcAttribute, String> attributes;
+    private Map<String, MovementPath> movementPaths;
+    private String currentPathName;
+    private boolean usePhysics; // Global physics setting for the NPC
     private boolean isDirty;
 
     public NpcData(
@@ -89,6 +93,10 @@ public class NpcData {
         this.visibilityDistance = visibilityDistance;
         this.attributes = attributes;
         this.mirrorSkin = mirrorSkin;
+        this.movementPaths = new ConcurrentHashMap<>();
+        this.currentPathName = "default";
+        this.movementPaths.put("default", new MovementPath("default"));
+        this.usePhysics = false; // Disabled by default
         this.isDirty = true;
     }
 
@@ -118,6 +126,10 @@ public class NpcData {
         this.equipment = new ConcurrentHashMap<>();
         this.attributes = new ConcurrentHashMap<>();
         this.mirrorSkin = false;
+        this.movementPaths = new ConcurrentHashMap<>();
+        this.currentPathName = "default";
+        this.movementPaths.put("default", new MovementPath("default"));
+        this.usePhysics = false; // Disabled by default
         this.isDirty = true;
     }
 
@@ -406,5 +418,57 @@ public class NpcData {
 
     public void setDirty(boolean dirty) {
         isDirty = dirty;
+    }
+
+    public boolean usePhysics() {
+        return usePhysics;
+    }
+
+    public void setUsePhysics(boolean usePhysics) {
+        this.usePhysics = usePhysics;
+        isDirty = true;
+    }
+
+    public Map<String, MovementPath> getMovementPaths() {
+        return movementPaths;
+    }
+
+    public MovementPath getCurrentPath() {
+        return movementPaths.get(currentPathName);
+    }
+
+    public String getCurrentPathName() {
+        return currentPathName;
+    }
+
+    public NpcData setCurrentPath(String pathName) {
+        if (movementPaths.containsKey(pathName)) {
+            this.currentPathName = pathName;
+            isDirty = true;
+        }
+        return this;
+    }
+
+    public MovementPath getPath(String name) {
+        return movementPaths.get(name);
+    }
+
+    public NpcData createPath(String name) {
+        if (!movementPaths.containsKey(name)) {
+            movementPaths.put(name, new MovementPath(name));
+            isDirty = true;
+        }
+        return this;
+    }
+
+    public NpcData removePath(String name) {
+        if (!name.equals("default")) {
+            movementPaths.remove(name);
+            if (currentPathName.equals(name)) {
+                currentPathName = "default";
+            }
+            isDirty = true;
+        }
+        return this;
     }
 }

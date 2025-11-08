@@ -8,6 +8,9 @@ import de.oliver.fancynpcs.commands.arguments.ActionTypeArgument;
 import de.oliver.fancynpcs.commands.arguments.LocationArgument;
 import de.oliver.fancynpcs.commands.arguments.NpcArgument;
 import de.oliver.fancynpcs.commands.exceptions.ReplyingParseException;
+import de.oliver.fancynpcs.api.utils.MovementMode;
+import de.oliver.fancynpcs.api.utils.MovementPace;
+import de.oliver.fancynpcs.api.utils.RotationMode;
 import de.oliver.fancynpcs.commands.npc.*;
 import de.oliver.fancynpcs.utils.GlowingColor;
 import io.leangen.geantyref.TypeToken;
@@ -128,6 +131,12 @@ public final class CloudCommandManager {
                 translationKey = "command_invalid_entity_type";
             else if (exceptionContext.exception().enumClass() == GlowingColor.class)
                 translationKey = "command_invalid_glowing_color";
+            else if (exceptionContext.exception().enumClass() == MovementPace.class)
+                translationKey = "command_invalid_movement_pace";
+            else if (exceptionContext.exception().enumClass() == MovementMode.class)
+                translationKey = "command_invalid_movement_mode";
+            else if (exceptionContext.exception().enumClass() == RotationMode.class)
+                translationKey = "command_invalid_rotation_mode";
             // Sending error message to the sender. In case no specialized message has been found, a generic one is used instead.
             translator.translate(translationKey)
                     .replaceStripped("input", exceptionContext.exception().input())
@@ -193,6 +202,7 @@ public final class CloudCommandManager {
         annotationParser.parse(TypeCMD.INSTANCE);
         annotationParser.parse(ActionCMD.INSTANCE);
         annotationParser.parse(VisibilityDistanceCMD.INSTANCE);
+        annotationParser.parse(MovementCMD.INSTANCE);
 
         if (FancyNpcs.ENABLE_DEBUG_MODE_FEATURE_FLAG.isEnabled()) {
             annotationParser.parse(FancyNpcsDebugCMD.INSTANCE);

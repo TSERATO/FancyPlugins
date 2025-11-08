@@ -79,6 +79,9 @@ messages:
   command_invalid_entity_type: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid entity type."
   command_invalid_action_trigger: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid action trigger."
   command_invalid_action_type: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid action type."
+  command_invalid_movement_pace: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid movement pace."
+  command_invalid_movement_mode: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid movement mode."
+  command_invalid_rotation_mode: "<dark_gray>› {errorColor}Argument named {warningColor}{input}{errorColor} is not a valid rotation mode."
   command_invalid_npc: "<dark_gray>› {errorColor}NPC {warningColor}{input}{errorColor} does not exist."
   command_invalid_material: "<dark_gray>› {errorColor}Argument {warningColor}{input}{errorColor} is not a valid material."
   command_invalid_attribute: "<dark_gray>› {errorColor}Specified value {warningColor}{input}{errorColor} is not a valid attribute."
@@ -206,6 +209,52 @@ messages:
   npc_action_list_entry: " <#848484>{number}. {warningColor}{action}<dark_gray>: <gray>{value}"
   npc_action_list_footer: "<newline><dark_gray><st>-------------</st>  <gray>Showing total of {warningColor}{total}<gray> entries  <dark_gray><st>-------------</st>"
   npc_action_list_failure_empty: "<dark_gray>› {errorColor}There are no actions in the list. Use {warningColor}/npc action (npc) (trigger) add (action){errorColor} to add your first action."
+
+  # Commands (npc movement)
+  # Path Management
+  npc_movement_path_created: "<dark_gray>› <gray>Movement path {warningColor}{path}<gray> has been created."
+  npc_movement_path_already_exists: "<dark_gray>› {errorColor}Movement path {warningColor}{path}{errorColor} already exists."
+  npc_movement_path_selected: "<dark_gray>› <gray>Now using movement path {warningColor}{path}<gray>."
+  npc_movement_path_not_found: "<dark_gray>› {errorColor}Movement path {warningColor}{path}{errorColor} does not exist."
+  npc_movement_path_removed: "<dark_gray>› <gray>Movement path {warningColor}{path}<gray> has been removed."
+  npc_movement_cannot_remove_default: "<dark_gray>› {errorColor}Cannot remove the default path."
+  npc_movement_no_paths: "<dark_gray>› {errorColor}No movement paths exist."
+  npc_movement_paths_header: "<dark_gray><st>------------------</st>  <gray>Movement Paths  <dark_gray><st>------------------</st><newline><gray>Current: {warningColor}{current}<newline>"
+  npc_movement_paths_entry: " <#848484>{current} {warningColor}{path}<dark_gray>: <gray>{positions} positions"
+  npc_movement_paths_footer: "<newline><dark_gray><st>-------------</st>  <gray>Total {warningColor}{total}<gray> paths  <dark_gray><st>-------------</st>"
+
+  # Position Management
+  npc_movement_position_added: "<dark_gray>› <gray>Position {warningColor}{total}<gray> has been added at X: {warningColor}{x}<gray>, Y: {warningColor}{y}<gray>, Z: {warningColor}{z}<gray>."
+  npc_movement_position_removed: "<dark_gray>› <gray>Position {warningColor}{index}<gray> has been removed. There are {warningColor}{total}<gray> positions in total."
+  npc_movement_position_set: "<dark_gray>› <gray>Position {warningColor}{index}<gray> has been updated to X: {warningColor}{x}<gray>, Y: {warningColor}{y}<gray>, Z: {warningColor}{z}<gray>."
+  npc_movement_position_invalid_index: "<dark_gray>› {errorColor}Position {warningColor}{index}{errorColor} does not exist."
+  npc_movement_waypoint_added: "<dark_gray>› <gray>Waypoint {warningColor}{total}<gray> has been added at X: {warningColor}{x}<gray>, Y: {warningColor}{y}<gray>, Z: {warningColor}{z}<gray>."
+  npc_movement_waypoint_toggled: "<dark_gray>› <gray>Position {warningColor}{index}<gray> has been changed to a {warningColor}{type}<gray>."
+  npc_movement_cleared: "<dark_gray>› <gray>Movement path has been cleared."
+  npc_movement_list_empty: "<dark_gray>› {errorColor}There are no positions in the movement path. Use {warningColor}/npc movement (npc) add_position{errorColor} to add your first position."
+  npc_movement_list_header: "<dark_gray><st>----------------</st>  <gray>Movement Path: {warningColor}{path}  <dark_gray><st>----------------</st><newline><gray>Pace: {warningColor}{pace}<gray> | Loop: {warningColor}{loop}<gray> | Mode: {warningColor}{mode}<gray> | Rotation: {warningColor}{rotation}<newline>"
+  npc_movement_list_entry: " <#848484>{index}. <gray>X: {warningColor}{x}<gray>, Y: {warningColor}{y}<gray>, Z: {warningColor}{z}<gray>, Yaw: {warningColor}{yaw}<gray>, Pitch: {warningColor}{pitch}"
+  npc_movement_list_entry_waypoint: " <#848484>{index}. <#FFD700>[WAYPOINT] <gray>X: {warningColor}{x}<gray>, Y: {warningColor}{y}<gray>, Z: {warningColor}{z}<gray>, Yaw: {warningColor}{yaw}<gray>, Pitch: {warningColor}{pitch}"
+  npc_movement_list_footer: "<newline><dark_gray><st>-------------</st>  <gray>Showing total of {warningColor}{total}<gray> positions  <dark_gray><st>-------------</st>"
+
+  # Basic Settings
+  npc_movement_pace_set: "<dark_gray>› <gray>Movement pace has been set to {warningColor}{pace}<gray>."
+  npc_movement_loop_set: "<dark_gray>› <gray>Movement looping has been set to {warningColor}{loop}<gray>."
+  npc_movement_rotation_mode_set: "<dark_gray>› <gray>Rotation mode has been set to {warningColor}{mode}<gray>."
+  npc_movement_mode_set: "<dark_gray>› <gray>Movement mode has been set to {warningColor}{mode}<gray>."
+
+  # Advanced Features
+  npc_movement_wait_set: "<dark_gray>› <gray>Wait time at position {warningColor}{index}<gray> has been set to {warningColor}{seconds}<gray> seconds."
+  npc_movement_action_set: "<dark_gray>› <gray>Action trigger {warningColor}{trigger}<gray> will be executed at position {warningColor}{index}<gray>."
+  npc_movement_position_action_added: "<dark_gray>› <gray>Action {warningColor}{action}<gray> added to position {warningColor}{index}<gray>."
+  npc_movement_position_action_removed: "<dark_gray>› <gray>Action {warningColor}{action_index}<gray> removed from position {warningColor}{index}<gray>."
+  npc_movement_position_actions_cleared: "<dark_gray>› <gray>All actions cleared from position {warningColor}{index}<gray>."
+  npc_movement_position_actions_empty: "<dark_gray>› <gray>Position {warningColor}{index}<gray> has no actions."
+  npc_movement_position_actions_header: "<dark_gray><st>--------</st>  <gray>Actions at Position {warningColor}{index}  <dark_gray><st>--------</st>"
+  npc_movement_position_actions_entry: " <#848484>{action_index}. {warningColor}{action}<gray> - Value: {warningColor}{value}"
+  npc_movement_segment_pace_set: "<dark_gray>› <gray>Pace from position {warningColor}{from}<gray> to {warningColor}{to}<gray> has been set to {warningColor}{pace}<gray>."
+  npc_movement_follow_distance_set: "<dark_gray>› <gray>Follow distance has been set to {warningColor}{distance}<gray> blocks."
+  npc_movement_physics_set: "<dark_gray>› <gray>Physics for {warningColor}{scope}<gray> has been set to {warningColor}{enabled}<gray>."
 
   # Commands (npc attribute)
   npc_attribute_set: "<dark_gray>› <gray>Attribute {warningColor}{attribute}<gray> has been set to {warningColor}{value}<gray>."
