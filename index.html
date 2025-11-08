@@ -734,7 +734,13 @@
                 selects: [],
                 checkboxes: []
             },
-            buttons: []
+            buttons: [
+                {
+                    label: '<color:red>Close</color>',
+                    tooltip: 'Click to close',
+                    actions: []
+                }
+            ]
         };
 
         let currentButtonIndex = -1;
@@ -1102,13 +1108,14 @@
                 return;
             }
 
+            const isLastButton = currentDialog.buttons.length === 1;
             container.innerHTML = currentDialog.buttons.map((button, index) => `
                 <div class="mc-item">
                     <div class="mc-item-header">
-                        <span class="mc-item-title">Button ${index + 1} <span class="mc-badge mc-badge-blue">${button.actions.length} actions</span></span>
+                        <span class="mc-item-title">Button ${index + 1} <span class="mc-badge mc-badge-blue">${button.actions.length} actions</span>${isLastButton ? ' <span class="mc-badge">Required</span>' : ''}</span>
                         <div class="mc-item-actions">
                             <button class="mc-button mc-button-green" onclick="addButtonAction(${index})">+ACT</button>
-                            <button class="mc-button mc-button-red" onclick="deleteButton(${index})">DEL</button>
+                            ${!isLastButton ? `<button class="mc-button mc-button-red" onclick="deleteButton(${index})">DEL</button>` : ''}
                         </div>
                     </div>
                     <div style="margin-top: 8px;">
@@ -1143,6 +1150,10 @@
         }
 
         function deleteButton(index) {
+            // Prevent deleting the last button (dialogs must have at least one button)
+            if (currentDialog.buttons.length <= 1) {
+                return;
+            }
             currentDialog.buttons.splice(index, 1);
             renderButtons();
             updatePreview();
@@ -1306,6 +1317,13 @@
 
         function downloadJSON() {
             updatePreview();
+
+            // Validate that dialog has at least one button
+            if (!currentDialog.buttons || currentDialog.buttons.length === 0) {
+                console.error('Dialog must have at least one button');
+                return;
+            }
+
             const json = JSON.stringify(currentDialog, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -1324,6 +1342,18 @@
             reader.onload = (e) => {
                 try {
                     currentDialog = JSON.parse(e.target.result);
+
+                    // Ensure dialog has at least one button
+                    if (!currentDialog.buttons || currentDialog.buttons.length === 0) {
+                        currentDialog.buttons = [
+                            {
+                                label: '<color:red>Close</color>',
+                                tooltip: 'Click to close',
+                                actions: []
+                            }
+                        ];
+                    }
+
                     loadDialogToForm();
                 } catch (error) {
                     console.error('Error loading dialog:', error);
@@ -1397,7 +1427,13 @@
                 canCloseWithEscape: true,
                 body: [],
                 inputs: { textFields: [], selects: [], checkboxes: [] },
-                buttons: []
+                buttons: [
+                    {
+                        label: '<color:red>Close</color>',
+                        tooltip: 'Click to close',
+                        actions: []
+                    }
+                ]
             };
             loadDialogToForm();
         }
