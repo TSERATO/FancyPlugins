@@ -20,12 +20,16 @@
 
 The FancyNPCs Movement System allows you to create complex, intelligent NPC movement with:
 - **Multiple named paths** per NPC
+- **Four walking orders**: Normal (forward), Backwards (reverse), Ping-Pong (back & forth), Random
+- **Walking state control**: Toggle walking on/off with persistence across restarts
 - **Three movement modes**: Continuous, Guide (step-by-step), and Manual
 - **Three rotation modes**: Smooth, On Arrival, and None
 - **Wait times** at specific positions
-- **Action triggers** when reaching positions
-- **Per-segment speed control**
+- **Action triggers** when reaching positions (including POSITION_ENTER/POSITION_LEAVE)
+- **Per-segment speed control** with visual animations
 - **Follow distance** for guided tours
+- **Player-like physics** with gravity, collision, and step-up
+- **Home and Go To** commands for precise positioning
 - **Automatic stuck detection** and recovery
 - **Full persistence** - paths save and reload with the server
 
@@ -39,8 +43,18 @@ The FancyNPCs Movement System allows you to create complex, intelligent NPC move
 2. Add positions: /npc movement Patrol add_position
    (Walk to each patrol point and run this command)
 3. Enable looping: /npc movement Patrol loop true
-4. Start movement: /npc action Patrol ANY_CLICK add start_movement
-5. Click the NPC to start patrolling!
+4. Enable walking: /npc movement Patrol set_walking true
+5. The NPC will automatically start patrolling!
+```
+
+### Interactive Patrol with Toggle
+```
+1. Create an NPC: /npc create Guard
+2. Add patrol positions: /npc movement Guard add_position
+   (Walk to each point and add it)
+3. Configure patrol: /npc movement Guard loop true
+4. Add toggle control: /npc action Guard RIGHT_CLICK add toggle_walking
+5. Right-click the NPC to start/stop the patrol!
 ```
 
 ### Simple Tour Guide
@@ -50,7 +64,18 @@ The FancyNPCs Movement System allows you to create complex, intelligent NPC move
    (At entrance, point 1, point 2, etc.)
 3. Set to guide mode: /npc movement Guide mode GUIDE
 4. Add interaction: /npc action Guide RIGHT_CLICK add next_position
-5. Click to move to each stop!
+5. Right-click to advance through each stop!
+```
+
+### Ping-Pong Sentry
+```
+1. Create an NPC: /npc create Sentry
+2. Add patrol positions: /npc movement Sentry add_position
+   (Add 2-4 positions along a route)
+3. Set ping-pong mode: /npc movement Sentry walking_order PING_PONG
+4. Enable looping: /npc movement Sentry loop true
+5. Start walking: /npc movement Sentry set_walking true
+6. The NPC will patrol back and forth forever!
 ```
 
 ---
@@ -242,17 +267,84 @@ Pace: WALK | Loop: true | Mode: CONTINUOUS | Rotation: SMOOTH
 /npc movement Merchant pace SNEAK          # Will crouch and show sneaking animation
 ```
 
+### Walking State Control
+**Commands:**
+- `/npc movement <npc> toggle_walking` - Toggle walking on/off
+- `/npc movement <npc> set_walking <true|false>` - Set walking state directly
+
+**Permissions:**
+- `fancynpcs.command.npc.movement.toggleWalking`
+- `fancynpcs.command.npc.movement.setWalking`
+
+Control whether the NPC is actively walking. This is persistent across server restarts.
+
+**Examples:**
+```
+# Toggle walking on/off
+/npc movement Guard toggle_walking
+
+# Enable walking
+/npc movement Guard set_walking true
+
+# Disable walking
+/npc movement Guard set_walking false
+```
+
+**Use Cases:**
+- Pause/resume patrols
+- Dynamic movement control
+- Integration with other plugins
+
+### Walking Order (Movement Pattern)
+**Command:** `/npc movement <npc> walking_order <order>`
+**Permission:** `fancynpcs.command.npc.movement.walkingOrder`
+
+**Orders:**
+- `NORMAL` - Forward direction: A → B → C → D
+- `BACKWARDS` - Reverse direction: D → C → B → A
+- `PING_PONG` - Back and forth: A → B → C → D → C → B → A
+- `RANDOM` - Random position selection (avoids immediate backtracking)
+
+**Examples:**
+```
+# Normal forward movement
+/npc movement Guard walking_order NORMAL
+
+# Walk backwards through path
+/npc movement Spy walking_order BACKWARDS
+
+# Patrol back and forth
+/npc movement Sentry walking_order PING_PONG
+
+# Random wandering
+/npc movement Villager walking_order RANDOM
+```
+
+**Use Cases:**
+- **NORMAL**: Standard patrols, tours, races
+- **BACKWARDS**: Retreat sequences, reverse routes
+- **PING_PONG**: Sentry guards, patrol routes
+- **RANDOM**: Wandering NPCs, unpredictable movement
+
+> **Note:** Walking order works together with the loop setting. When loop is disabled, the NPC stops at the end (NORMAL/BACKWARDS) or continues ping-ponging (PING_PONG).
+
 ### Loop Mode
 **Command:** `/npc movement <npc> loop <true|false>`
 **Permission:** `fancynpcs.command.npc.movement.loop`
 
+Controls whether the NPC repeats the path after reaching the end. Works with all walking orders.
+
 **Examples:**
 ```
-# Continuous patrol
+# Continuous patrol (loops forever)
 /npc movement Guard loop true
 
-# One-time journey
+# One-time journey (stops at end)
 /npc movement Escort loop false
+
+# Ping-pong forever
+/npc movement Sentry walking_order PING_PONG
+/npc movement Sentry loop true
 ```
 
 ### Rotation Mode
@@ -508,6 +600,60 @@ When physics is enabled, NPCs behave like players:
 - Cinematic sequences with precise positioning
 - Performance-critical scenarios
 
+### Home and Go To Position
+**Commands:**
+- `/npc movement <npc> home` - Return NPC to first position and stop
+- `/npc movement <npc> goto <position>` - Walk to specific position and stop there
+
+**Permissions:**
+- `fancynpcs.command.npc.movement.home`
+- `fancynpcs.command.npc.movement.goto`
+
+**Examples:**
+```
+# Send NPC back to start
+/npc movement Guard home
+
+# Send NPC to position 3
+/npc movement Guard goto 3
+
+# Send to last position (if you have 5 positions, index 4)
+/npc movement TourGuide goto 4
+```
+
+**Use Cases:**
+- Reset NPC to starting position
+- Send NPC to specific location on command
+- Position NPCs for events or cutscenes
+- Emergency repositioning
+
+> **Note:** The NPC will walk to the target position using its normal movement path, then stop automatically. Perfect for controlled NPC positioning!
+
+### Action Triggers for Position Enter/Leave
+**New Triggers:**
+- `POSITION_ENTER` - Execute actions when NPC enters a position
+- `POSITION_LEAVE` - Execute actions when NPC leaves a position
+
+These triggers allow you to execute actions automatically as the NPC moves through its path.
+
+**Examples:**
+```
+# Play sound when entering position
+/npc action Guard POSITION_ENTER add play_sound minecraft:block.note_block.bell
+
+# Send message when leaving position
+/npc action Merchant POSITION_LEAVE add message Heading to next location...
+
+# Create footstep effects
+/npc action Walker POSITION_ENTER add server_command particle minecraft:footstep ~ ~ ~ 0.1 0 0.1 0 5
+```
+
+**Use Cases:**
+- Environmental effects as NPC moves
+- Position-based narration
+- Dynamic world events
+- Checkpoint notifications
+
 ### Path Validation & Stuck Detection
 **Automatic Feature** - No commands needed!
 
@@ -608,6 +754,75 @@ Movement is controlled through the action system. Add these to triggers like `AN
 /npc action Guard LEFT_CLICK add stop_movement
 ```
 
+### Toggle Walking
+**Action:** `toggle_walking`
+**Requires Value:** No
+**Permission:** `fancynpcs.command.npc.action.add.toggle_walking`
+
+**Examples:**
+```
+# Toggle walking on click
+/npc action Guard ANY_CLICK add toggle_walking
+
+# Pause/resume patrol
+/npc action Sentry RIGHT_CLICK add toggle_walking
+/npc action Sentry RIGHT_CLICK add message Walking toggled!
+```
+
+### Set Walking
+**Action:** `set_walking`
+**Requires Value:** Yes (true or false)
+**Permission:** `fancynpcs.command.npc.action.add.set_walking`
+
+**Examples:**
+```
+# Start walking on right click
+/npc action Guard RIGHT_CLICK add set_walking true
+/npc action Guard RIGHT_CLICK add message Starting patrol...
+
+# Stop walking on left click
+/npc action Guard LEFT_CLICK add set_walking false
+/npc action Guard LEFT_CLICK add message Patrol stopped.
+```
+
+### Home
+**Action:** `home`
+**Requires Value:** No
+**Permission:** `fancynpcs.command.npc.action.add.home`
+
+Send the NPC back to the first position on its path and stop.
+
+**Examples:**
+```
+# Return home on click
+/npc action Guard ANY_CLICK add home
+/npc action Guard ANY_CLICK add message Returning to post!
+
+# Emergency recall
+/npc action Escort SHIFT_RIGHT_CLICK add home
+```
+
+### Go To Position
+**Action:** `goto_position`
+**Requires Value:** Yes (position index)
+**Permission:** `fancynpcs.command.npc.action.add.goto_position`
+
+Make the NPC walk to a specific position and stop there.
+
+**Examples:**
+```
+# Go to position 2 on click
+/npc action Guard ANY_CLICK add goto_position 2
+
+# Create position hotkeys
+/npc action Teleporter LEFT_CLICK add goto_position 0
+/npc action Teleporter RIGHT_CLICK add goto_position 5
+
+# Quest progression
+/npc action QuestNPC RIGHT_CLICK add goto_position 3
+/npc action QuestNPC RIGHT_CLICK add message Following you to the destination!
+```
+
 ---
 
 ## Permissions
@@ -632,6 +847,9 @@ Movement is controlled through the action system. Add these to triggers like `AN
 - `fancynpcs.command.npc.movement.loop` - Toggle looping
 - `fancynpcs.command.npc.movement.rotationMode` - Set rotation behavior
 - `fancynpcs.command.npc.movement.mode` - Set movement mode
+- `fancynpcs.command.npc.movement.toggleWalking` - Toggle walking on/off
+- `fancynpcs.command.npc.movement.setWalking` - Set walking state
+- `fancynpcs.command.npc.movement.walkingOrder` - Set walking order (NORMAL, BACKWARDS, PING_PONG, RANDOM)
 
 ### Advanced Features
 - `fancynpcs.command.npc.movement.setWait` - Set wait times
@@ -640,6 +858,12 @@ Movement is controlled through the action system. Add these to triggers like `AN
 - `fancynpcs.command.npc.movement.followDistance` - Guide follow distance
 - `fancynpcs.command.npc.movement.physics` - Path-level physics
 - `fancynpcs.command.npc.movement.physicsGlobal` - Global NPC physics
+- `fancynpcs.command.npc.movement.home` - Send NPC home
+- `fancynpcs.command.npc.movement.goto` - Send NPC to specific position
+- `fancynpcs.command.npc.movement.addPositionAction` - Add action to position
+- `fancynpcs.command.npc.movement.removePositionAction` - Remove action from position
+- `fancynpcs.command.npc.movement.clearPositionActions` - Clear all position actions
+- `fancynpcs.command.npc.movement.listPositionActions` - List position actions
 
 ### Actions
 - `fancynpcs.command.npc.action.add.start_movement` - Start movement action
@@ -647,6 +871,10 @@ Movement is controlled through the action system. Add these to triggers like `AN
 - `fancynpcs.command.npc.action.add.next_position` - Next position action
 - `fancynpcs.command.npc.action.add.previous_position` - Previous position action
 - `fancynpcs.command.npc.action.add.return_to_start` - Return to start action
+- `fancynpcs.command.npc.action.add.toggle_walking` - Toggle walking action
+- `fancynpcs.command.npc.action.add.set_walking` - Set walking action
+- `fancynpcs.command.npc.action.add.home` - Home action
+- `fancynpcs.command.npc.action.add.goto_position` - Go to position action
 
 ### Permission Wildcards
 - `fancynpcs.command.npc.movement.*` - All movement commands
@@ -656,39 +884,65 @@ Movement is controlled through the action system. Add these to triggers like `AN
 
 ## Examples
 
-### Example 1: Basic Guard Patrol
+### Example 1: Basic Guard Patrol (Auto-Start)
 ```bash
 # Create NPC
 /npc create Guard
 
 # Set up patrol route
+/npc movement Guard add_position  # Position 0
 /npc movement Guard add_position  # Position 1
 /npc movement Guard add_position  # Position 2
 /npc movement Guard add_position  # Position 3
-/npc movement Guard add_position  # Position 4
+
+# Configure movement
+/npc movement Guard pace WALK
+/npc movement Guard loop true
+/npc movement Guard walking_order NORMAL
+/npc movement Guard physics_global true
+
+# Start patrolling (persists across restarts)
+/npc movement Guard set_walking true
+```
+
+### Example 1b: Guard Patrol with Interactive Control
+```bash
+# Create NPC
+/npc create Guard
+
+# Set up patrol route
+/npc movement Guard add_position  # Position 0
+/npc movement Guard add_position  # Position 1
+/npc movement Guard add_position  # Position 2
+/npc movement Guard add_position  # Position 3
 
 # Configure movement
 /npc movement Guard pace WALK
 /npc movement Guard loop true
 /npc movement Guard mode CONTINUOUS
 
-# Add start trigger
-/npc action Guard ANY_CLICK add start_movement
-/npc action Guard ANY_CLICK add message Beginning patrol...
+# Add interactive controls
+/npc action Guard RIGHT_CLICK add toggle_walking
+/npc action Guard RIGHT_CLICK add message &aPatrol toggled!
+
+/npc action Guard LEFT_CLICK add home
+/npc action Guard LEFT_CLICK add message &eReturning to post!
+
+# Right-click to start/stop patrol, left-click to return home
 ```
 
-### Example 2: Interactive Tour Guide
+### Example 2: Interactive Tour Guide with Position Triggers
 ```bash
 # Create NPC
 /npc create TourGuide
 
 # Create tour path with waypoint to navigate around a fountain
-/npc movement TourGuide add_position      # Position 1: Entrance
+/npc movement TourGuide add_position      # Position 0: Entrance
 /npc movement TourGuide add_waypoint      # Waypoint: Navigate around fountain
-/npc movement TourGuide add_position      # Position 2: First attraction
-/npc movement TourGuide add_position      # Position 3: Second attraction
-/npc movement TourGuide add_position      # Position 4: Third attraction
-/npc movement TourGuide add_position      # Position 5: Exit
+/npc movement TourGuide add_position      # Position 1: First attraction
+/npc movement TourGuide add_position      # Position 2: Second attraction
+/npc movement TourGuide add_position      # Position 3: Third attraction
+/npc movement TourGuide add_position      # Position 4: Exit
 
 # Configure as guide
 /npc movement TourGuide mode GUIDE
@@ -697,66 +951,86 @@ Movement is controlled through the action system. Add these to triggers like `AN
 /npc movement TourGuide physics_global true
 
 # Add wait times for explanations
-/npc movement TourGuide set_wait 1 5
+/npc movement TourGuide set_wait 0 5
+/npc movement TourGuide set_wait 1 10
 /npc movement TourGuide set_wait 2 10
-/npc movement TourGuide set_wait 3 10
-/npc movement TourGuide set_wait 4 8
+/npc movement TourGuide set_wait 3 8
 
-# Add position-specific messages (with colors)
-/npc movement TourGuide add_position_action 1 message &6&lWelcome to the tour!
-/npc movement TourGuide add_position_action 1 message &ePlease stay close and listen carefully.
+# Add position-specific messages using position actions
+/npc movement TourGuide add_position_action 0 message &6&lWelcome to the tour!
+/npc movement TourGuide add_position_action 0 message &ePlease stay close and listen carefully.
 
-/npc movement TourGuide add_position_action 2 message &b&lThis is our first exhibit — &f&oThe Ancient Fountain&b...
-/npc movement TourGuide add_position_action 2 play_sound minecraft:block.note_block.harp
+/npc movement TourGuide add_position_action 1 message &b&lThis is our first exhibit — &f&oThe Ancient Fountain&b...
+/npc movement TourGuide add_position_action 1 play_sound minecraft:block.note_block.harp
 
-/npc movement TourGuide add_position_action 3 message &a&lHere we have the &2Sculpture Garden&a...
-/npc movement TourGuide add_position_action 3 message &7Notice the &f&ointricate details&7 on each piece.
+/npc movement TourGuide add_position_action 2 message &a&lHere we have the &2Sculpture Garden&a...
+/npc movement TourGuide add_position_action 2 message &7Notice the &f&ointricate details&7 on each piece.
 
-/npc movement TourGuide add_position_action 4 message &d&lThis is our newest addition to the museum!
-/npc movement TourGuide add_position_action 4 play_sound minecraft:entity.player.levelup
+/npc movement TourGuide add_position_action 3 message &d&lThis is our newest addition to the museum!
+/npc movement TourGuide add_position_action 3 play_sound minecraft:entity.player.levelup
 
-# Optional exit message (position 5)
-/npc movement TourGuide add_position_action 5 message &6&lThank you for joining the tour!
-/npc movement TourGuide add_position_action 5 message &eWe hope you enjoyed your visit. Have a great day!
+/npc movement TourGuide add_position_action 4 message &6&lThank you for joining the tour!
+/npc movement TourGuide add_position_action 4 message &eWe hope you enjoyed your visit. Have a great day!
+
+# Add POSITION_ENTER trigger for footsteps sound effect
+/npc action TourGuide POSITION_ENTER add play_sound minecraft:block.wood.step
 
 # Add player controls for navigation
 /npc action TourGuide RIGHT_CLICK add next_position
 /npc action TourGuide LEFT_CLICK add previous_position
+
+# Emergency controls
+/npc action TourGuide SHIFT_LEFT_CLICK add home
+/npc action TourGuide SHIFT_LEFT_CLICK add message &cReturning to entrance!
 ```
 
-### Example 3: Dramatic Chase Sequence
+### Example 3: Dramatic Chase Sequence with Ping-Pong
 ```bash
 # Create NPC
 /npc create Spy
 
 # Set up escape route
-/npc movement Spy add_position  # Start (hiding)
-/npc movement Spy add_position  # Spotted
-/npc movement Spy add_position  # Running
-/npc movement Spy add_position  # Escape
+/npc movement Spy add_position  # Position 0: Hiding spot
+/npc movement Spy add_position  # Position 1: Patrol point
+/npc movement Spy add_position  # Position 2: Alert area
+/npc movement Spy add_position  # Position 3: Escape route
 
-# Configure speeds
-/npc movement Spy pace WALK
-/npc movement Spy set_pace_segment 1 2 SNEAK
-/npc movement Spy set_pace_segment 2 3 SPRINT
-/npc movement Spy set_pace_segment 3 4 SPRINT_JUMP
+# Configure speeds with visual animations
+/npc movement Spy pace SNEAK
+/npc movement Spy set_pace_segment 0 1 SNEAK      # Crouching animation
+/npc movement Spy set_pace_segment 1 2 WALK       # Normal walking
+/npc movement Spy set_pace_segment 2 3 SPRINT     # Sprinting animation
 
-# Add drama
-/npc movement Spy set_action 1 ANY_CLICK
-/npc action Spy ANY_CLICK add message &7*creeping quietly*
+# Set ping-pong mode for realistic patrol
+/npc movement Spy walking_order PING_PONG
+/npc movement Spy loop true
+/npc movement Spy physics_global true
 
-/npc movement Spy set_action 2 ANY_CLICK
-/npc action Spy ANY_CLICK add message &c&lDISCOVERED!
-/npc action Spy ANY_CLICK add play_sound minecraft:entity.enderman.scream
+# Add dramatic position actions using POSITION_ENTER
+/npc action Spy POSITION_ENTER add message &7*footsteps*
+/npc action Spy POSITION_LEAVE add message &8...
 
-/npc movement Spy set_action 4 ANY_CLICK
-/npc action Spy ANY_CLICK add message &a*escaped!*
+# Position 0 actions - hiding
+/npc movement Spy add_position_action 0 message &7*creeping quietly*
+/npc movement Spy add_position_action 0 play_sound minecraft:block.grass.step
 
-# Start the sequence
-/npc action Spy ANY_CLICK add start_movement
+# Position 2 actions - discovered!
+/npc movement Spy add_position_action 2 message &c&lDISCOVERED!
+/npc movement Spy add_position_action 2 play_sound minecraft:entity.enderman.scream
+
+# Position 3 actions - escaped
+/npc movement Spy add_position_action 3 message &a*escaped safely!*
+/npc movement Spy add_position_action 3 play_sound minecraft:entity.player.levelup
+
+# Start the patrol automatically
+/npc movement Spy set_walking true
+
+# Add interactive control to trigger escape
+/npc action Spy RIGHT_CLICK add goto_position 3
+/npc action Spy RIGHT_CLICK add message &c&lRunning to escape!
 ```
 
-### Example 4: Multi-Path Merchant
+### Example 4: Multi-Path Merchant with Auto-Walking
 ```bash
 # Create merchant
 /npc create Merchant
@@ -764,136 +1038,171 @@ Movement is controlled through the action system. Add these to triggers like `AN
 # Create market route
 /npc movement Merchant create_path market_route
 /npc movement Merchant select_path market_route
-/npc movement Merchant add_position  # Market stall 1
-/npc movement Merchant add_position  # Market stall 2
-/npc movement Merchant add_position  # Market stall 3
+/npc movement Merchant add_position  # Position 0: Stall 1
+/npc movement Merchant add_position  # Position 1: Stall 2
+/npc movement Merchant add_position  # Position 2: Stall 3
+/npc movement Merchant set_wait 0 15
 /npc movement Merchant set_wait 1 15
 /npc movement Merchant set_wait 2 15
-/npc movement Merchant set_wait 3 15
 /npc movement Merchant pace WALK
 /npc movement Merchant loop true
+/npc movement Merchant walking_order NORMAL
 
 # Create warehouse route
 /npc movement Merchant create_path warehouse_route
 /npc movement Merchant select_path warehouse_route
-/npc movement Merchant add_position  # Market to warehouse
-/npc movement Merchant add_position  # Warehouse
-/npc movement Merchant add_position  # Back to market
-/npc movement Merchant set_wait 2 30
+/npc movement Merchant add_position  # Position 0: Market to warehouse
+/npc movement Merchant add_position  # Position 1: Warehouse
+/npc movement Merchant add_position  # Position 2: Back to market
+/npc movement Merchant set_wait 1 30
 /npc movement Merchant pace WALK
 /npc movement Merchant loop false
 
-# Add path switching
+# Add path switching with auto-walk
 /npc action Merchant RIGHT_CLICK add start_movement market_route
-/npc action Merchant RIGHT_CLICK add message Off to the market!
+/npc action Merchant RIGHT_CLICK add set_walking true
+/npc action Merchant RIGHT_CLICK add message &eOff to the market!
 
 /npc action Merchant LEFT_CLICK add start_movement warehouse_route
-/npc action Merchant LEFT_CLICK add message Restocking from the warehouse...
+/npc action Merchant LEFT_CLICK add set_walking true
+/npc action Merchant LEFT_CLICK add message &6Restocking from the warehouse...
+
+# Start on market route automatically
+/npc movement Merchant select_path market_route
+/npc movement Merchant set_walking true
 ```
 
-### Example 5: Quest-Driven NPC
+### Example 5: Quest-Driven NPC with Go To Position
 ```bash
 # Create quest NPC
 /npc create QuestGiver
 
 # Create quest path
-/npc movement QuestGiver add_position  # Village center
-/npc movement QuestGiver add_position  # Cave entrance
-/npc movement QuestGiver add_position  # Treasure location
-/npc movement QuestGiver add_position  # Back to village
+/npc movement QuestGiver add_position  # Position 0: Village center
+/npc movement QuestGiver add_position  # Position 1: Cave entrance
+/npc movement QuestGiver add_position  # Position 2: Treasure location
+/npc movement QuestGiver add_position  # Position 3: Return point
 
 # Set to manual mode
 /npc movement QuestGiver mode MANUAL
 /npc movement QuestGiver rotation_mode SMOOTH
+/npc movement QuestGiver physics_global true
 
-# Step 1: Start quest
-/npc action QuestGiver RIGHT_CLICK add message Follow me to the cave!
-/npc action QuestGiver RIGHT_CLICK add next_position
+# Step 1: Start quest - Go to cave
+/npc action QuestGiver RIGHT_CLICK add message &eFollow me to the cave!
+/npc action QuestGiver RIGHT_CLICK add goto_position 1
+/npc action QuestGiver RIGHT_CLICK add message &7Walking to cave entrance...
 
-# Step 2: At cave
-/npc movement QuestGiver set_action 1 ANY_CLICK
-/npc action QuestGiver ANY_CLICK add message Here's the cave. I'll wait here.
-/npc action QuestGiver ANY_CLICK add need_permission completed.cave.quest
-/npc action QuestGiver ANY_CLICK add next_position
+# Step 2: At cave - Go to treasure
+/npc movement QuestGiver add_position_action 1 message &6Here's the cave entrance.
+/npc movement QuestGiver add_position_action 1 message &7I'll wait while you explore inside...
 
-# Step 3: Show treasure
-/npc movement QuestGiver set_action 2 ANY_CLICK
-/npc action QuestGiver ANY_CLICK add message You found it! Let's return.
-/npc action QuestGiver ANY_CLICK add next_position
+/npc action QuestGiver SHIFT_RIGHT_CLICK add goto_position 2
+/npc action QuestGiver SHIFT_RIGHT_CLICK add message &aYou completed the cave! Follow me to the treasure!
 
-# Step 4: Reward
-/npc movement QuestGiver set_action 3 ANY_CLICK
-/npc action QuestGiver ANY_CLICK add message Here's your reward!
-/npc action QuestGiver ANY_CLICK add player_command give @s diamond 5
-/npc action QuestGiver ANY_CLICK add return_to_start
+# Step 3: Show treasure - Return to village
+/npc movement QuestGiver add_position_action 2 message &d&lYou found the treasure!
+/npc movement QuestGiver add_position_action 2 message &eLet's head back to the village.
+/npc movement QuestGiver add_position_action 2 play_sound minecraft:entity.player.levelup
+
+/npc action QuestGiver SHIFT_LEFT_CLICK add goto_position 3
+
+# Step 4: Reward at village
+/npc movement QuestGiver add_position_action 3 message &6&lHere's your reward!
+/npc movement QuestGiver add_position_action 3 player_command give @s diamond 5
+
+# Emergency reset
+/npc action QuestGiver LEFT_CLICK add home
+/npc action QuestGiver LEFT_CLICK add message &cQuest reset!
 ```
 
-### Example 6: Day/Night Patrol
+### Example 6: Day/Night Patrol with Walking Orders
 ```bash
 # Create guard
 /npc create NightGuard
 
-# Create day patrol
+# Create day patrol (normal forward)
 /npc movement NightGuard create_path day_patrol
 /npc movement NightGuard select_path day_patrol
-/npc movement NightGuard add_position  # Main gate
-/npc movement NightGuard add_position  # East tower
-/npc movement NightGuard add_position  # Market
-/npc movement NightGuard add_position  # West tower
+/npc movement NightGuard add_position  # Position 0: Main gate
+/npc movement NightGuard add_position  # Position 1: East tower
+/npc movement NightGuard add_position  # Position 2: Market
+/npc movement NightGuard add_position  # Position 3: West tower
 /npc movement NightGuard pace WALK
 /npc movement NightGuard loop true
+/npc movement NightGuard walking_order NORMAL
 
-# Create night patrol
+# Create night patrol (backwards + sneaking)
 /npc movement NightGuard create_path night_patrol
 /npc movement NightGuard select_path night_patrol
-/npc movement NightGuard add_position  # Outer wall 1
-/npc movement NightGuard add_position  # Outer wall 2
-/npc movement NightGuard add_position  # Dark alley
-/npc movement NightGuard add_position  # Outer wall 3
+/npc movement NightGuard add_position  # Position 0: Outer wall 1
+/npc movement NightGuard add_position  # Position 1: Outer wall 2
+/npc movement NightGuard add_position  # Position 2: Dark alley
+/npc movement NightGuard add_position  # Position 3: Outer wall 3
 /npc movement NightGuard pace SNEAK
 /npc movement NightGuard loop true
+/npc movement NightGuard walking_order PING_PONG  # Back and forth patrol
 /npc movement NightGuard rotation_mode SMOOTH
 
-# Use command blocks to switch paths based on time
+# Start with day patrol
+/npc movement NightGuard select_path day_patrol
+/npc movement NightGuard set_walking true
+
+# Use command blocks to switch paths based on time (day = 6AM, night = 6PM)
+# Day patrol command block (execute at time 0):
 # /npc action NightGuard CUSTOM add start_movement day_patrol
+# /npc action NightGuard CUSTOM add set_walking true
+
+# Night patrol command block (execute at time 13000):
 # /npc action NightGuard CUSTOM add start_movement night_patrol
+# /npc action NightGuard CUSTOM add set_walking true
 ```
 
-### Example 7: Race Track NPC
+### Example 7: Random Wandering Villager
 ```bash
-# Create racer
-/npc create Racer
+# Create wandering villager
+/npc create Villager
 
-# Create race path
-/npc movement Racer add_position  # Start line
-/npc movement Racer add_position  # Turn 1
-/npc movement Racer add_position  # Straight
-/npc movement Racer add_position  # Turn 2
-/npc movement Racer add_position  # Finish
+# Create wandering path with multiple positions
+/npc movement Villager add_position  # Position 0: Town square
+/npc movement Villager add_position  # Position 1: Market
+/npc movement Villager add_position  # Position 2: Farm
+/npc movement Villager add_position  # Position 3: Well
+/npc movement Villager add_position  # Position 4: Church
+/npc movement Villager add_position  # Position 5: Bakery
 
-# Configure for racing
-/npc movement Racer pace SPRINT
-/npc movement Racer set_pace_segment 1 2 SPRINT_JUMP
-/npc movement Racer set_pace_segment 3 4 SPRINT
-/npc movement Racer loop false
-/npc movement Racer rotation_mode SMOOTH
+# Configure for random wandering
+/npc movement Villager pace WALK
+/npc movement Villager loop true
+/npc movement Villager walking_order RANDOM  # Random position selection
+/npc movement Villager rotation_mode SMOOTH
+/npc movement Villager physics_global true
 
-# Add race events
-/npc movement Racer set_action 1 ANY_CLICK
-/npc action Racer ANY_CLICK add message &e&lRace starting in 3...
-/npc action Racer ANY_CLICK add wait 1
-/npc action Racer ANY_CLICK add message &e&l2...
-/npc action Racer ANY_CLICK add wait 1
-/npc action Racer ANY_CLICK add message &e&l1...
-/npc action Racer ANY_CLICK add wait 1
-/npc action Racer ANY_CLICK add message &a&lGO!
+# Add wait times at each location
+/npc movement Villager set_wait 0 10
+/npc movement Villager set_wait 1 8
+/npc movement Villager set_wait 2 12
+/npc movement Villager set_wait 3 5
+/npc movement Villager set_wait 4 15
+/npc movement Villager set_wait 5 10
 
-/npc movement Racer set_action 4 ANY_CLICK
-/npc action Racer ANY_CLICK add message &6&lFinished the race!
-/npc action Racer ANY_CLICK add play_sound minecraft:entity.player.levelup
+# Add random messages at positions
+/npc movement Villager add_position_action 0 message &7*humming a tune*
+/npc movement Villager add_position_action 1 message &e*looking at goods*
+/npc movement Villager add_position_action 2 message &a*tending crops*
+/npc movement Villager add_position_action 3 message &b*fetching water*
+/npc movement Villager add_position_action 4 message &d*praying quietly*
+/npc movement Villager add_position_action 5 message &6*buying bread*
 
-# Start race
-/npc action Racer ANY_CLICK add start_movement
+# Add POSITION_ENTER for footsteps
+/npc action Villager POSITION_ENTER add play_sound minecraft:block.stone.step
+
+# Start wandering automatically
+/npc movement Villager set_walking true
+
+# Add toggle control
+/npc action Villager RIGHT_CLICK add toggle_walking
+/npc action Villager RIGHT_CLICK add message &7Villager paused/resumed.
 ```
 
 ---
