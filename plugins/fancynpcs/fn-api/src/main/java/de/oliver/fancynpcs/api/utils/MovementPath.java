@@ -16,6 +16,7 @@ public class MovementPath {
     private final List<PathPosition> positions;
     private MovementPace pace;
     private boolean loop;
+    private WalkingOrder walkingOrder;
     private RotationMode rotationMode;
     private MovementMode movementMode;
     private double followDistance;
@@ -30,6 +31,7 @@ public class MovementPath {
         this.positions = new ArrayList<>();
         this.pace = MovementPace.WALK;
         this.loop = false;
+        this.walkingOrder = WalkingOrder.NORMAL; // Default to NORMAL mode
         this.rotationMode = RotationMode.SMOOTH;
         this.movementMode = MovementMode.CONTINUOUS;
         this.followDistance = -1; // -1 means disabled
@@ -62,6 +64,14 @@ public class MovementPath {
 
     public void setLoop(boolean loop) {
         this.loop = loop;
+    }
+
+    public WalkingOrder getWalkingOrder() {
+        return walkingOrder;
+    }
+
+    public void setWalkingOrder(WalkingOrder walkingOrder) {
+        this.walkingOrder = walkingOrder;
     }
 
     public RotationMode getRotationMode() {

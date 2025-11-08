@@ -255,6 +255,11 @@ messages:
   npc_movement_segment_pace_set: "<dark_gray>› <gray>Pace from position {warningColor}{from}<gray> to {warningColor}{to}<gray> has been set to {warningColor}{pace}<gray>."
   npc_movement_follow_distance_set: "<dark_gray>› <gray>Follow distance has been set to {warningColor}{distance}<gray> blocks."
   npc_movement_physics_set: "<dark_gray>› <gray>Physics for {warningColor}{scope}<gray> has been set to {warningColor}{enabled}<gray>."
+  npc_movement_walking_toggled: "<dark_gray>› <gray>Walking has been {warningColor}{enabled}<gray>."
+  npc_movement_walking_set: "<dark_gray>› <gray>Walking has been set to {warningColor}{enabled}<gray>."
+  npc_movement_walking_order_set: "<dark_gray>› <gray>Walking order has been set to {warningColor}{order}<gray>."
+  npc_movement_home: "<dark_gray>› <gray>NPC has been sent home to the first position."
+  npc_movement_goto: "<dark_gray>› <gray>NPC is walking to position {warningColor}{position}<gray>."
 
   # Commands (npc attribute)
   npc_attribute_set: "<dark_gray>› <gray>Attribute {warningColor}{attribute}<gray> has been set to {warningColor}{value}<gray>."

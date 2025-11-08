@@ -14,6 +14,7 @@ import de.oliver.fancynpcs.api.utils.MovementPace;
 import de.oliver.fancynpcs.api.utils.MovementPath;
 import de.oliver.fancynpcs.api.utils.PathPosition;
 import de.oliver.fancynpcs.api.utils.RotationMode;
+import de.oliver.fancynpcs.api.utils.WalkingOrder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -46,6 +47,11 @@ public abstract class Npc {
     private UUID guidingPlayer = null; // For GUIDE mode
     private long stuckCheckTime = 0;
     private Location lastStuckCheckLocation = null;
+    private boolean movingForward = true; // For BACKWARDS mode
+    private int previousPathIndex = -1; // For RANDOM mode to avoid going back
+    private double verticalVelocity = 0.0; // For realistic gravity and falling
+    private boolean wasOnGround = false; // Track if was on ground last tick
+    private int targetPosition = -1; // For goToPosition - stops after reaching this position
 
     public Npc(NpcData data) {
         this.data = data;
@@ -311,6 +317,7 @@ public abstract class Npc {
         }
 
         isMoving = true;
+        data.setWalking(true); // Set walking state to true
         currentPathIndex = 0;
         isWaitingAtPosition = false;
         stuckCheckTime = System.currentTimeMillis();
@@ -328,8 +335,10 @@ public abstract class Npc {
             movementTask = null;
         }
         isMoving = false;
+        data.setWalking(false); // Set walking state to false
         isWaitingAtPosition = false;
         guidingPlayer = null;
+        targetPosition = -1; // Clear target position when stopping
     }
 
     /**
@@ -346,7 +355,7 @@ public abstract class Npc {
 
         if (isWaitingAtPosition) {
             isWaitingAtPosition = false;
-            currentPathIndex++;
+            advanceToNextPosition(path);
         }
     }
 
@@ -382,6 +391,123 @@ public abstract class Npc {
         moveForAll(false);
         currentPathIndex = 0;
         stopMovement();
+    }
+
+    /**
+     * Walks to a specific position and stops there
+     */
+    public void goToPosition(int position) {
+        MovementPath path = data.getCurrentPath();
+        if (path == null || path.getPositions().isEmpty()) return;
+
+        // Validate position index
+        if (position < 0 || position >= path.getPositions().size()) return;
+
+        // Set target position to stop at
+        targetPosition = position;
+
+        // If already at target position, just stop
+        if (currentPathIndex == position) {
+            stopMovement();
+            targetPosition = -1;
+            return;
+        }
+
+        // Stop current movement and start fresh
+        stopMovement();
+
+        // Set current index to start walking towards target
+        // We need to be smart about the path - just set it one position before target
+        // Or set it to current position and let advanceToNextPosition handle it
+        // For now, let's use a simple approach: start from current position
+
+        // Start movement - it will walk until reaching targetPosition
+        startMovement();
+    }
+
+    /**
+     * Advances to the next position index based on walking order
+     */
+    private void advanceToNextPosition(MovementPath path) {
+        int pathSize = path.getPositions().size();
+        if (pathSize == 0) return;
+
+        // If we have a target position set, check if we've reached it
+        if (targetPosition >= 0 && currentPathIndex == targetPosition) {
+            stopMovement();
+            targetPosition = -1;
+            return;
+        }
+
+        switch (path.getWalkingOrder()) {
+            case NORMAL:
+                // Forward: A → B → C → D
+                currentPathIndex++;
+                if (currentPathIndex >= pathSize) {
+                    if (path.isLoop()) {
+                        currentPathIndex = 0;
+                    } else {
+                        stopMovement();
+                    }
+                }
+                break;
+
+            case BACKWARDS:
+                // Reverse: D → C → B → A
+                currentPathIndex--;
+                if (currentPathIndex < 0) {
+                    if (path.isLoop()) {
+                        currentPathIndex = pathSize - 1; // Loop back to end
+                    } else {
+                        stopMovement();
+                    }
+                }
+                break;
+
+            case PING_PONG:
+                // Ping-pong: A → B → C → D → C → B → A
+                if (movingForward) {
+                    currentPathIndex++;
+                    if (currentPathIndex >= pathSize - 1) {
+                        // Reached end (or second-to-last for size 2), reverse direction
+                        movingForward = false;
+                        if (pathSize == 1) {
+                            currentPathIndex = 0; // Single position, stay
+                        } else if (pathSize == 2) {
+                            currentPathIndex = 0; // For 2 positions, go back to first
+                        } else {
+                            currentPathIndex = pathSize - 2; // Go back to second-to-last
+                        }
+                    }
+                } else {
+                    currentPathIndex--;
+                    if (currentPathIndex <= 0) {
+                        // Reached start, reverse direction
+                        movingForward = true;
+                        if (pathSize == 1) {
+                            currentPathIndex = 0; // Single position, stay
+                        } else {
+                            currentPathIndex = 1; // Go forward to second position
+                        }
+                    }
+                }
+                break;
+
+            case RANDOM:
+                // Random: Visits positions randomly, avoiding previous position
+                if (pathSize > 1) {
+                    // Store current position as previous before changing
+                    previousPathIndex = currentPathIndex;
+                    int nextIndex;
+                    do {
+                        nextIndex = (int) (Math.random() * pathSize);
+                    } while ((nextIndex == currentPathIndex || nextIndex == previousPathIndex) && pathSize > 2);
+                    currentPathIndex = nextIndex;
+                } else {
+                    currentPathIndex = 0;
+                }
+                break;
+        }
     }
 
     /**
@@ -424,16 +550,7 @@ public abstract class Npc {
 
             // Done waiting, continue to next
             isWaitingAtPosition = false;
-            currentPathIndex++;
-
-            if (currentPathIndex >= positions.size()) {
-                if (path.isLoop()) {
-                    currentPathIndex = 0;
-                } else {
-                    stopMovement();
-                    return;
-                }
-            }
+            advanceToNextPosition(path);
         }
 
         // Get current and target positions
@@ -480,14 +597,7 @@ public abstract class Npc {
         // Waypoints: pass through without stopping
         if (currentPos.isWaypoint()) {
             // Skip to next position immediately
-            currentPathIndex++;
-            if (currentPathIndex >= path.getPositions().size()) {
-                if (path.isLoop()) {
-                    currentPathIndex = 0;
-                } else {
-                    stopMovement();
-                }
-            }
+            advanceToNextPosition(path);
             return;
         }
 
@@ -567,20 +677,86 @@ public abstract class Npc {
     private Location applyPhysics(Location from, Location to, Vector movement) {
         Location result = to.clone();
 
-        // Apply gravity (fall down if no ground)
-        if (!isOnGround(result)) {
-            result.subtract(0, 0.08, 0); // Gravity constant
+        // Check if the target horizontal position has a solid block
+        Location horizontalTarget = from.clone();
+        horizontalTarget.setX(to.getX());
+        horizontalTarget.setZ(to.getZ());
+
+        // Try to step up blocks (players can step up 0.6 blocks, but we use 1.0 for full blocks)
+        boolean canMove = true;
+        double stepHeight = 0.0;
+
+        // Check if there's a block at the target position
+        if (isSolidBlock(horizontalTarget)) {
+            // Check up to 1 block higher for step-up
+            boolean foundStepUp = false;
+            for (double height = 0.1; height <= 1.0; height += 0.1) {
+                Location stepTest = horizontalTarget.clone().add(0, height, 0);
+                if (!isSolidBlock(stepTest)) {
+                    // Found valid step height
+                    stepHeight = height;
+                    foundStepUp = true;
+                    break;
+                }
+            }
+
+            if (!foundStepUp) {
+                // Can't step up, block movement
+                canMove = false;
+                result.setX(from.getX());
+                result.setZ(from.getZ());
+            } else {
+                // Apply step up
+                result.add(0, stepHeight, 0);
+            }
         }
 
-        // Check for solid blocks in the way
-        if (isSolidBlock(result)) {
-            // Try to step up (like player stepping up blocks/stairs)
-            Location stepUp = result.clone().add(0, 1, 0);
-            if (!isSolidBlock(stepUp)) {
-                result = stepUp;
+        if (canMove) {
+            // Check if there's ground below the new position
+            boolean onGround = isOnGround(result);
+
+            if (onGround) {
+                // Snap to ground level
+                Location groundLevel = result.clone();
+                while (isOnGround(groundLevel) && !isSolidBlock(groundLevel)) {
+                    groundLevel.subtract(0, 0.1, 0);
+                }
+                groundLevel.add(0, 0.1, 0); // Move back up to just above ground
+
+                // Set Y to ground level
+                result.setY(groundLevel.getY());
+                verticalVelocity = 0.0;
+                wasOnGround = true;
             } else {
-                // Can't step up, stay at current position
-                return from;
+                // Apply gravity acceleration (Minecraft uses -0.08 per tick, with drag)
+                if (!wasOnGround) {
+                    // Continue falling with acceleration
+                    verticalVelocity -= 0.08; // Gravity acceleration
+                    verticalVelocity *= 0.98; // Air resistance
+                } else {
+                    // Just left ground, start falling
+                    verticalVelocity = -0.08;
+                }
+
+                // Limit terminal velocity (Minecraft terminal velocity is around -3.92)
+                if (verticalVelocity < -3.92) {
+                    verticalVelocity = -3.92;
+                }
+
+                // Apply vertical velocity
+                result.add(0, verticalVelocity, 0);
+
+                // Check if we hit ground while falling
+                if (isSolidBlock(result) || isOnGround(result)) {
+                    // Hit ground, snap to surface
+                    while (isSolidBlock(result)) {
+                        result.add(0, 0.1, 0);
+                    }
+                    verticalVelocity = 0.0;
+                    wasOnGround = true;
+                } else {
+                    wasOnGround = false;
+                }
             }
         }
 

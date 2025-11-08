@@ -10,6 +10,7 @@ import de.oliver.fancynpcs.api.utils.MovementPace;
 import de.oliver.fancynpcs.api.utils.MovementPath;
 import de.oliver.fancynpcs.api.utils.PathPosition;
 import de.oliver.fancynpcs.api.utils.RotationMode;
+import de.oliver.fancynpcs.api.utils.WalkingOrder;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -622,6 +623,77 @@ public enum MovementCMD {
         translator.translate("npc_movement_physics_set")
                 .replaceStripped("enabled", String.valueOf(enabled))
                 .replaceStripped("scope", "NPC")
+                .send(sender);
+    }
+
+    @Command("npc movement <npc> toggle_walking")
+    @Permission("fancynpcs.command.npc.movement.toggleWalking")
+    public void onToggleWalking(
+            final @NotNull CommandSender sender,
+            final @NotNull Npc npc
+    ) {
+        boolean newState = !npc.getData().isWalking();
+        if (newState) {
+            npc.startMovement();
+        } else {
+            npc.stopMovement();
+        }
+        translator.translate("npc_movement_walking_toggled")
+                .replaceStripped("enabled", String.valueOf(newState))
+                .send(sender);
+    }
+
+    @Command("npc movement <npc> set_walking <enabled>")
+    @Permission("fancynpcs.command.npc.movement.setWalking")
+    public void onSetWalking(
+            final @NotNull CommandSender sender,
+            final @NotNull Npc npc,
+            final boolean enabled
+    ) {
+        if (enabled) {
+            npc.startMovement();
+        } else {
+            npc.stopMovement();
+        }
+        translator.translate("npc_movement_walking_set")
+                .replaceStripped("enabled", String.valueOf(enabled))
+                .send(sender);
+    }
+
+    @Command("npc movement <npc> walking_order <order>")
+    @Permission("fancynpcs.command.npc.movement.walkingOrder")
+    public void onWalkingOrder(
+            final @NotNull CommandSender sender,
+            final @NotNull Npc npc,
+            final @NotNull WalkingOrder order
+    ) {
+        npc.getData().getCurrentPath().setWalkingOrder(order);
+        translator.translate("npc_movement_walking_order_set")
+                .replaceStripped("order", order.name())
+                .send(sender);
+    }
+
+    @Command("npc movement <npc> home")
+    @Permission("fancynpcs.command.npc.movement.home")
+    public void onHome(
+            final @NotNull CommandSender sender,
+            final @NotNull Npc npc
+    ) {
+        npc.returnToStart();
+        translator.translate("npc_movement_home")
+                .send(sender);
+    }
+
+    @Command("npc movement <npc> goto <position>")
+    @Permission("fancynpcs.command.npc.movement.goto")
+    public void onGoto(
+            final @NotNull CommandSender sender,
+            final @NotNull Npc npc,
+            final int position
+    ) {
+        npc.goToPosition(position);
+        translator.translate("npc_movement_goto")
+                .replaceStripped("position", String.valueOf(position))
                 .send(sender);
     }
 

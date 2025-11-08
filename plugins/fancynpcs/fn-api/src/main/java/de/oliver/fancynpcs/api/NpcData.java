@@ -45,6 +45,7 @@ public class NpcData {
     private Map<String, MovementPath> movementPaths;
     private String currentPathName;
     private boolean usePhysics; // Global physics setting for the NPC
+    private boolean walking; // Whether the NPC should be walking its path
     private boolean isDirty;
 
     public NpcData(
@@ -97,6 +98,7 @@ public class NpcData {
         this.currentPathName = "default";
         this.movementPaths.put("default", new MovementPath("default"));
         this.usePhysics = false; // Disabled by default
+        this.walking = false; // Disabled by default
         this.isDirty = true;
     }
 
@@ -130,6 +132,7 @@ public class NpcData {
         this.currentPathName = "default";
         this.movementPaths.put("default", new MovementPath("default"));
         this.usePhysics = false; // Disabled by default
+        this.walking = false; // Disabled by default
         this.isDirty = true;
     }
 
@@ -469,6 +472,16 @@ public class NpcData {
             }
             isDirty = true;
         }
+        return this;
+    }
+
+    public boolean isWalking() {
+        return walking;
+    }
+
+    public NpcData setWalking(boolean walking) {
+        this.walking = walking;
+        isDirty = true;
         return this;
     }
 }

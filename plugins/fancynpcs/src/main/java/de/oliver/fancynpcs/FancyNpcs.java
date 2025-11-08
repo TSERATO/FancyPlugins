@@ -228,6 +228,10 @@ public class FancyNpcs extends JavaPlugin implements FancyNpcsPlugin {
         actionManager.registerAction(new NextPositionAction());
         actionManager.registerAction(new PreviousPositionAction());
         actionManager.registerAction(new ReturnToStartAction());
+        actionManager.registerAction(new ToggleWalkingAction());
+        actionManager.registerAction(new SetWalkingAction());
+        actionManager.registerAction(new HomeAction());
+        actionManager.registerAction(new GotoPositionAction());
 
         skinManager = new SkinManagerImpl(new UUIDFileCache(), new SkinCacheFile(), new SkinCacheMemory(), MojangQueue.get(), MineSkinQueue.get());
         OldSkinCacheMigrator.migrate();

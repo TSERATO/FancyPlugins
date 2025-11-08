@@ -18,6 +18,7 @@ import de.oliver.fancynpcs.api.utils.MovementPath;
 import de.oliver.fancynpcs.api.utils.NpcEquipmentSlot;
 import de.oliver.fancynpcs.api.utils.PathPosition;
 import de.oliver.fancynpcs.api.utils.RotationMode;
+import de.oliver.fancynpcs.api.utils.WalkingOrder;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -174,6 +175,7 @@ public class NpcManagerImpl implements NpcManager {
             npcConfig.set("npcs." + data.getId() + ".spawnEntity", data.isSpawnEntity());
             npcConfig.set("npcs." + data.getId() + ".collidable", data.isCollidable());
             npcConfig.set("npcs." + data.getId() + ".usePhysics", data.usePhysics());
+            npcConfig.set("npcs." + data.getId() + ".walking", data.isWalking());
             npcConfig.set("npcs." + data.getId() + ".glowing", data.isGlowing());
             npcConfig.set("npcs." + data.getId() + ".glowingColor", data.getGlowingColor().toString());
             npcConfig.set("npcs." + data.getId() + ".turnToPlayer", data.isTurnToPlayer());
@@ -228,6 +230,7 @@ public class NpcManagerImpl implements NpcManager {
 
                 npcConfig.set(pathPrefix + ".pace", path.getPace().name());
                 npcConfig.set(pathPrefix + ".loop", path.isLoop());
+                npcConfig.set(pathPrefix + ".walkingOrder", path.getWalkingOrder().name());
                 npcConfig.set(pathPrefix + ".rotationMode", path.getRotationMode().name());
                 npcConfig.set(pathPrefix + ".movementMode", path.getMovementMode().name());
                 npcConfig.set(pathPrefix + ".followDistance", path.getFollowDistance());
@@ -367,6 +370,7 @@ public class NpcManagerImpl implements NpcManager {
             boolean spawnEntity = npcConfig.getBoolean("npcs." + id + ".spawnEntity");
             boolean collidable = npcConfig.getBoolean("npcs." + id + ".collidable", true);
             boolean usePhysics = npcConfig.getBoolean("npcs." + id + ".usePhysics", false);
+            boolean walking = npcConfig.getBoolean("npcs." + id + ".walking", false);
             boolean glowing = npcConfig.getBoolean("npcs." + id + ".glowing");
             NamedTextColor glowingColor = NamedTextColor.NAMES.value(npcConfig.getString("npcs." + id + ".glowingColor", "white"));
             boolean turnToPlayer = npcConfig.getBoolean("npcs." + id + ".turnToPlayer");
@@ -492,6 +496,9 @@ public class NpcManagerImpl implements NpcManager {
             // Set global physics setting
             data.setUsePhysics(usePhysics);
 
+            // Set walking state
+            data.setWalking(walking);
+
             // Load movement paths
             String currentPathName = npcConfig.getString("npcs." + id + ".movement.currentPath", "default");
             ConfigurationSection pathsSection = npcConfig.getConfigurationSection("npcs." + id + ".movement.paths");
@@ -510,6 +517,13 @@ public class NpcManagerImpl implements NpcManager {
                     }
 
                     path.setLoop(npcConfig.getBoolean(pathPrefix + ".loop", false));
+
+                    try {
+                        String walkingOrderStr = npcConfig.getString(pathPrefix + ".walkingOrder", "NORMAL");
+                        path.setWalkingOrder(WalkingOrder.valueOf(walkingOrderStr));
+                    } catch (IllegalArgumentException e) {
+                        logger.warn("Invalid walking order for npc '" + id + "' path '" + pathName + "'");
+                    }
 
                     try {
                         String rotationModeStr = npcConfig.getString(pathPrefix + ".rotationMode", "SMOOTH");
@@ -631,6 +645,11 @@ public class NpcManagerImpl implements NpcManager {
 
             npc.create();
             registerNpc(npc);
+
+            // Start movement if walking state is enabled
+            if (walking && npc.getData().getCurrentPath() != null) {
+                npc.startMovement();
+            }
         }
         this.setLoaded();
     }

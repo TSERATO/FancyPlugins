@@ -17,6 +17,14 @@ public enum ActionTrigger {
      * represents interactions invoked by the API.
      */
     CUSTOM,
+    /**
+     * triggered when the NPC enters a position on its path.
+     */
+    POSITION_ENTER,
+    /**
+     * triggered when the NPC leaves a position on its path.
+     */
+    POSITION_LEAVE,
     ;
 
     /**
