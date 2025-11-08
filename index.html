@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FancyDialogs Editor - Minecraft Style</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Minecraft', 'Press Start+2P', monospace;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAKElEQVQYV2NkYGD4z8DAwMgABXAGjuUDFTIyMjKMKkRWiKwQnwkAroEEEbvvZYgAAAAASUVORK5CYII=') repeat;
+            background-size: 10px 10px;
+            image-rendering: pixelated;
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .minecraft-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.8);
+            border: 4px solid #555;
+            box-shadow:
+                inset 0 0 0 2px #8B8B8B,
+                inset 0 0 0 4px #373737,
+                0 0 0 2px #000,
+                0 8px 16px rgba(0, 0, 0, 0.8);
+            image-rendering: pixelated;
+        }
+
+        .mc-header {
+            background: linear-gradient(180deg, #555 0%, #333 100%);
+            border-bottom: 4px solid #222;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .mc-title {
+            font-size: 32px;
+            color: #FFFF55;
+            text-shadow: 3px 3px 0 #3F3F00;
+            margin-bottom: 8px;
+            image-rendering: pixelated;
+        }
+
+        .mc-subtitle {
+            font-size: 14px;
+            color: #AAAAAA;
+            text-shadow: 2px 2px 0 #2A2A2A;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .mc-panel {
+            background: rgba(139, 139, 139, 0.95);
+            border: 4px solid #373737;
+            box-shadow:
+                inset 2px 2px 0 rgba(255, 255, 255, 0.3),
+                inset -2px -2px 0 rgba(0, 0, 0, 0.5);
+            padding: 16px;
+        }
+
+        .mc-panel-title {
+            font-size: 20px;
+            color: #404040;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.5);
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(198, 198, 198, 0.9);
+            border: 2px solid #555;
+            text-align: center;
+        }
+
+        .mc-button {
+            background: linear-gradient(180deg, #FFFFFF 0%, #C6C6C6 100%);
+            border: 2px solid #000;
+            box-shadow:
+                inset 1px 1px 0 rgba(255, 255, 255, 0.8),
+                inset -1px -1px 0 rgba(0, 0, 0, 0.3);
+            color: #404040;
+            text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            image-rendering: pixelated;
+            font-family: 'Minecraft', 'Press Start+2P', monospace;
+            transition: all 0.1s;
+            text-align: center;
+        }
+
+        .mc-button:hover {
+            background: linear-gradient(180deg, #FFFFA0 0%, #E0E080 100%);
+            transform: translateY(-1px);
+        }
+
+        .mc-button:active {
+            transform: translateY(1px);
+            box-shadow:
+                inset -1px -1px 0 rgba(255, 255, 255, 0.8),
+                inset 1px 1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .mc-button-red {
+            background: linear-gradient(180deg, #FF5555 0%, #CC0000 100%);
+            color: #FFF;
+            text-shadow: 2px 2px 0 #550000;
+        }
+
+        .mc-button-green {
+            background: linear-gradient(180deg, #55FF55 0%, #00CC00 100%);
+            color: #FFF;
+            text-shadow: 2px 2px 0 #005500;
+        }
+
+        .mc-button-blue {
+            background: linear-gradient(180deg, #5555FF 0%, #0000CC 100%);
+            color: #FFF;
+            text-shadow: 2px 2px 0 #000055;
+        }
+
+        .mc-button-gold {
+            background: linear-gradient(180deg, #FFAA00 0%, #DD8800 100%);
+            color: #FFF;
+            text-shadow: 2px 2px 0 #554400;
+        }
+
+        .mc-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #555;
+            box-shadow:
+                inset 2px 2px 0 rgba(0, 0, 0, 0.8),
+                inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+            color: #FFF;
+            padding: 12px;
+            font-size: 14px;
+            font-family: 'Minecraft', 'Press Start+2P', monospace;
+            margin-bottom: 12px;
+        }
+
+        .mc-input:focus {
+            outline: none;
+            border-color: #FFAA00;
+            box-shadow:
+                inset 2px 2px 0 rgba(0, 0, 0, 0.8),
+                inset -1px -1px 0 rgba(255, 255, 255, 0.1),
+                0 0 8px rgba(255, 170, 0, 0.5);
+        }
+
+        .mc-textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #555;
+            box-shadow:
+                inset 2px 2px 0 rgba(0, 0, 0, 0.8),
+                inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+            color: #FFF;
+            padding: 12px;
+            font-size: 14px;
+            font-family: 'Minecraft', monospace;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 12px;
+        }
+
+        .mc-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #555;
+            box-shadow:
+                inset 2px 2px 0 rgba(0, 0, 0, 0.8),
+                inset -1px -1px 0 rgba(255, 255, 255, 0.1);
+            color: #FFF;
+            padding: 12px;
+            font-size: 14px;
+            font-family: 'Minecraft', 'Press Start+2P', monospace;
+            margin-bottom: 12px;
+            cursor: pointer;
+        }
+
+        .mc-label {
+            display: block;
+            font-size: 14px;
+            color: #FFFF55;
+            text-shadow: 2px 2px 0 #3F3F00;
+            margin-bottom: 8px;
+        }
+
+        .mc-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .mc-checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px;
+            border: 2px solid #555;
+        }
+
+        .mc-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .mc-tab {
+            background: linear-gradient(180deg, #8B8B8B 0%, #555 100%);
+            border: 2px solid #373737;
+            box-shadow:
+                inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 0 rgba(0, 0, 0, 0.5);
+            color: #AAAAAA;
+            padding: 10px 20px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: 'Minecraft', 'Press Start+2P', monospace;
+            transition: all 0.1s;
+        }
+
+        .mc-tab.active {
+            background: linear-gradient(180deg, #C6C6C6 0%, #8B8B8B 100%);
+            color: #FFFF55;
+            text-shadow: 2px 2px 0 #3F3F00;
+            border-color: #FFAA00;
+        }
+
+        .mc-tab:hover:not(.active) {
+            background: linear-gradient(180deg, #A0A0A0 0%, #606060 100%);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .mc-item {
+            background: rgba(85, 85, 85, 0.9);
+            border: 3px solid #373737;
+            box-shadow:
+                inset 2px 2px 0 rgba(139, 139, 139, 0.5),
+                inset -2px -2px 0 rgba(0, 0, 0, 0.8);
+            padding: 12px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .mc-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .mc-item-title {
+            font-size: 14px;
+            color: #FFFFFF;
+            text-shadow: 2px 2px 0 #3F3F3F;
+        }
+
+        .mc-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .mc-badge {
+            display: inline-block;
+            background: rgba(255, 170, 0, 0.9);
+            border: 2px solid #AA5500;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #FFF;
+            text-shadow: 1px 1px 0 #552A00;
+            margin-left: 8px;
+        }
+
+        .mc-badge-blue {
+            background: rgba(85, 85, 255, 0.9);
+            border-color: #0000AA;
+            text-shadow: 1px 1px 0 #00002A;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: #AAAAAA;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px dashed #555;
+        }
+
+        .preview-dialog {
+            background: rgba(139, 139, 139, 0.95);
+            border: 4px solid #373737;
+            box-shadow:
+                inset 2px 2px 0 rgba(255, 255, 255, 0.3),
+                inset -2px -2px 0 rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .preview-title {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #555;
+        }
+
+        .preview-body {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid #555;
+            min-height: 80px;
+        }
+
+        .preview-body p {
+            margin-bottom: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .preview-inputs {
+            margin-bottom: 16px;
+        }
+
+        .preview-input-item {
+            margin-bottom: 12px;
+        }
+
+        .preview-input-label {
+            display: block;
+            font-size: 14px;
+            color: #FFFF55;
+            text-shadow: 2px 2px 0 #3F3F00;
+            margin-bottom: 8px;
+        }
+
+        .preview-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .preview-buttons:has(.preview-button:only-child) {
+            grid-template-columns: 1fr;
+            max-width: 50%;
+            margin: 0 auto;
+        }
+
+        /* Center last button if it's odd (alone on its row) */
+        .preview-button:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            max-width: 50%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .preview-button {
+            background: linear-gradient(180deg, #5A5A5A 0%, #3A3A3A 100%);
+            border: 2px solid #000;
+            box-shadow:
+                inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+                inset -1px -1px 0 rgba(0, 0, 0, 0.5);
+            padding: 14px;
+            font-size: 14px;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+            color: #E0E0E0;
+            text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        .preview-button:hover {
+            background: linear-gradient(180deg, #7A7A7A 0%, #5A5A5A 100%);
+        }
+
+        .preview-button:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #555;
+            padding: 8px 12px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+            margin-bottom: 6px;
+            color: #FFFFFF;
+            text-shadow: none;
+        }
+
+        .code-preview {
+            background: rgba(0, 0, 0, 0.9);
+            color: #55FF55;
+            padding: 16px;
+            border: 2px solid #555;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
+            text-shadow: 0 0 2px #00AA00;
+        }
+
+        .mc-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mc-modal.show {
+            display: flex;
+        }
+
+        .mc-modal-content {
+            background: rgba(139, 139, 139, 0.98);
+            border: 4px solid #373737;
+            box-shadow:
+                inset 2px 2px 0 rgba(255, 255, 255, 0.3),
+                inset -2px -2px 0 rgba(0, 0, 0, 0.5),
+                0 0 30px rgba(0, 0, 0, 0.9);
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .mc-modal-header {
+            font-size: 20px;
+            color: #FFFF55;
+            text-shadow: 2px 2px 0 #3F3F00;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px solid #555;
+            text-align: center;
+        }
+
+        .mc-modal-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .mc-info-box {
+            background: rgba(85, 85, 255, 0.2);
+            border: 2px solid #5555FF;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .mc-warning-box {
+            background: rgba(255, 170, 0, 0.2);
+            border: 2px solid #FFAA00;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .action-preview {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid #555;
+            padding: 10px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .action-item {
+            background: rgba(85, 85, 85, 0.7);
+            border: 2px solid #373737;
+            padding: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .action-type {
+            color: #55FF55;
+            text-shadow: 1px 1px 0 #00AA00;
+            font-weight: bold;
+        }
+
+        .action-data {
+            color: #FFFF55;
+            text-shadow: 1px 1px 0 #AAAA00;
+            flex: 1;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mc-title {
+                font-size: 24px;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #333;
+            border: 2px solid #555;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #8B8B8B;
+            border: 2px solid #555;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #C6C6C6;
+        }
+    </style>
+</head>
+<body>
+    <div class="minecraft-container">
+        <div class="mc-header">
+            <div class="mc-title">FANCYDIALOGS EDITOR</div>
+            <div class="mc-subtitle">Create Minecraft 1.21.6+ Dialogs</div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Editor Panel -->
+            <div class="mc-panel">
+                <div class="mc-panel-title">⚙ DIALOG EDITOR</div>
+
+                <div class="mc-tabs">
+                    <button class="mc-tab active" data-tab="basic">BASIC</button>
+                    <button class="mc-tab" data-tab="body">BODY</button>
+                    <button class="mc-tab" data-tab="inputs">INPUTS</button>
+                    <button class="mc-tab" data-tab="buttons">BUTTONS</button>
+                </div>
+
+                <!-- Basic Tab -->
+                <div class="tab-content active" id="basic-tab">
+                    <div class="mc-info-box">
+                        💡 Supports MiniMessage & PlaceholderAPI
+                    </div>
+
+                    <label class="mc-label">Dialog ID:</label>
+                    <input type="text" class="mc-input" id="dialog-id" placeholder="my_dialog" value="my_dialog">
+
+                    <label class="mc-label">Title:</label>
+                    <input type="text" class="mc-input" id="dialog-title" placeholder="<b><color:#ff7300>Title</color></b>" value="<b><color:#ff7300>My Dialog</color></b>">
+
+                    <div class="mc-checkbox-group">
+                        <input type="checkbox" class="mc-checkbox" id="can-close-escape" checked>
+                        <label class="mc-label" for="can-close-escape" style="margin: 0;">Close with ESC</label>
+                    </div>
+                </div>
+
+                <!-- Body Tab -->
+                <div class="tab-content" id="body-tab">
+                    <div class="mc-info-box">
+                        💬 Each line appears in dialog body
+                    </div>
+
+                    <div id="body-lines-container"></div>
+
+                    <button class="mc-button mc-button-green" onclick="addBodyLine()" style="width: 100%;">+ ADD LINE</button>
+                </div>
+
+                <!-- Inputs Tab -->
+                <div class="tab-content" id="inputs-tab">
+                    <div class="mc-tabs">
+                        <button class="mc-tab active" data-subtab="textfields">TEXT</button>
+                        <button class="mc-tab" data-subtab="selects">DROPDOWN</button>
+                        <button class="mc-tab" data-subtab="checkboxes">CHECKBOX</button>
+                    </div>
+
+                    <div class="tab-content active" id="textfields-subtab">
+                        <div id="textfields-container"></div>
+                        <button class="mc-button mc-button-green" onclick="addTextField()" style="width: 100%;">+ ADD TEXT FIELD</button>
+                    </div>
+
+                    <div class="tab-content" id="selects-subtab">
+                        <div id="selects-container"></div>
+                        <button class="mc-button mc-button-green" onclick="addSelect()" style="width: 100%;">+ ADD DROPDOWN</button>
+                    </div>
+
+                    <div class="tab-content" id="checkboxes-subtab">
+                        <div id="checkboxes-container"></div>
+                        <button class="mc-button mc-button-green" onclick="addCheckbox()" style="width: 100%;">+ ADD CHECKBOX</button>
+                    </div>
+                </div>
+
+                <!-- Buttons Tab -->
+                <div class="tab-content" id="buttons-tab">
+                    <div class="mc-info-box">
+                        🔘 Clickable buttons with actions
+                    </div>
+
+                    <div id="buttons-container"></div>
+
+                    <button class="mc-button mc-button-green" onclick="addButton()" style="width: 100%;">+ ADD BUTTON</button>
+                </div>
+
+                <div class="button-row">
+                    <button class="mc-button mc-button-green" onclick="downloadJSON()" style="flex: 1;">💾 DOWNLOAD</button>
+                    <button class="mc-button mc-button-blue" onclick="loadExample()" style="flex: 1;">📂 EXAMPLE</button>
+                    <button class="mc-button mc-button-gold" onclick="document.getElementById('file-input').click()" style="flex: 1;">📁 IMPORT</button>
+                    <button class="mc-button mc-button-red" onclick="resetDialog()" style="flex: 1;">🗑 RESET</button>
+                    <input type="file" id="file-input" accept=".json" style="display: none;" onchange="importJSON(event)">
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="mc-panel">
+                <div class="mc-panel-title">👁 LIVE PREVIEW</div>
+
+                <div class="mc-tabs">
+                    <button class="mc-tab active" data-preview="visual">VISUAL</button>
+                    <button class="mc-tab" data-preview="code">CODE</button>
+                </div>
+
+                <div class="tab-content active" id="visual-preview">
+                    <div class="preview-dialog" id="preview-container"></div>
+                </div>
+
+                <div class="tab-content" id="code-preview">
+                    <div class="code-preview" id="json-preview"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="action-modal" class="mc-modal">
+        <div class="mc-modal-content">
+            <div class="mc-modal-header">ADD ACTION</div>
+
+            <label class="mc-label">Action Type:</label>
+            <select class="mc-select" id="action-type" onchange="updateActionFields()">
+                <option value="message">💬 Message</option>
+                <option value="open_dialog">📖 Open Dialog</option>
+                <option value="open_random_dialog">🎲 Random Dialog</option>
+                <option value="console_command">⌨ Console Command</option>
+                <option value="player_command">👤 Player Command</option>
+                <option value="send_to_server">🌐 Transfer Server</option>
+            </select>
+
+            <div id="action-fields"></div>
+
+            <div class="mc-modal-footer">
+                <button class="mc-button mc-button-red" onclick="closeActionModal()">CANCEL</button>
+                <button class="mc-button mc-button-green" onclick="confirmAction()">ADD</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Select Option Modal -->
+    <div id="option-modal" class="mc-modal">
+        <div class="mc-modal-content">
+            <div class="mc-modal-header">ADD OPTION</div>
+
+            <label class="mc-label">Value (placeholder):</label>
+            <input type="text" class="mc-input" id="option-value" placeholder="red">
+
+            <label class="mc-label">Display Text:</label>
+            <input type="text" class="mc-input" id="option-display" placeholder="<color:red>Red</color>">
+
+            <div class="mc-checkbox-group">
+                <input type="checkbox" class="mc-checkbox" id="option-initial">
+                <label class="mc-label" for="option-initial" style="margin: 0;">Default Selection</label>
+            </div>
+
+            <div class="mc-modal-footer">
+                <button class="mc-button mc-button-red" onclick="closeOptionModal()">CANCEL</button>
+                <button class="mc-button mc-button-green" onclick="confirmOption()">ADD</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDialog = {
+            id: 'my_dialog',
+            title: '<b><color:#ff7300>My Dialog</color></b>',
+            canCloseWithEscape: true,
+            body: [],
+            inputs: {
+                textFields: [],
+                selects: [],
+                checkboxes: []
+            },
+            buttons: []
+        };
+
+        let currentButtonIndex = -1;
+        let currentSelectIndex = -1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabs();
+            updatePreview();
+        });
+
+        function setupTabs() {
+            document.querySelectorAll('.mc-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.dataset.tab || tab.dataset.subtab || tab.dataset.preview;
+                    const container = tab.closest('.mc-tabs').parentElement;
+
+                    container.querySelectorAll('.mc-tab').forEach(t => t.classList.remove('active'));
+                    container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                    tab.classList.add('active');
+
+                    if (tab.dataset.preview) {
+                        document.getElementById(tabName + '-preview').classList.add('active');
+                    } else if (tab.dataset.subtab) {
+                        document.getElementById(tabName + '-subtab').classList.add('active');
+                    } else {
+                        document.getElementById(tabName + '-tab').classList.add('active');
+                    }
+                });
+            });
+        }
+
+        function updateActionFields() {
+            const type = document.getElementById('action-type').value;
+            const container = document.getElementById('action-fields');
+
+            const fields = {
+                'message': {
+                    label: 'Message Text:',
+                    placeholder: 'Hello {player}! You chose {color_choice}',
+                    type: 'textarea',
+                    help: 'Use {key} for input placeholders'
+                },
+                'open_dialog': {
+                    label: 'Dialog ID:',
+                    placeholder: 'rules',
+                    type: 'input',
+                    help: 'ID of dialog to open'
+                },
+                'open_random_dialog': {
+                    label: 'Dialog IDs (comma-separated):',
+                    placeholder: 'dialog1,dialog2,dialog3',
+                    type: 'input',
+                    help: 'Opens random dialog from list'
+                },
+                'console_command': {
+                    label: 'Console Command:',
+                    placeholder: 'give {player} diamond 1',
+                    type: 'input',
+                    help: 'Runs as server console'
+                },
+                'player_command': {
+                    label: 'Player Command:',
+                    placeholder: 'spawn',
+                    type: 'input',
+                    help: 'Runs as player (no /)'
+                },
+                'send_to_server': {
+                    label: 'Server Name:',
+                    placeholder: 'lobby',
+                    type: 'input',
+                    help: 'BungeeCord/Velocity server'
+                }
+            };
+
+            const field = fields[type];
+            container.innerHTML = `
+                <label class="mc-label">${field.label}</label>
+                ${field.type === 'textarea'
+                    ? `<textarea class="mc-textarea" id="action-data" placeholder="${field.placeholder}"></textarea>`
+                    : `<input type="text" class="mc-input" id="action-data" placeholder="${field.placeholder}">`
+                }
+                <div class="mc-info-box">${field.help}</div>
+            `;
+        }
+
+        function addBodyLine() {
+            currentDialog.body.push({ text: '' });
+            renderBodyLines();
+            updatePreview();
+        }
+
+        function renderBodyLines() {
+            const container = document.getElementById('body-lines-container');
+            if (currentDialog.body.length === 0) {
+                container.innerHTML = '<div class="empty-state">No body text yet</div>';
+                return;
+            }
+
+            container.innerHTML = currentDialog.body.map((line, index) => `
+                <div class="mc-item">
+                    <div class="mc-item-header">
+                        <span class="mc-item-title">Line ${index + 1}</span>
+                        <div class="mc-item-actions">
+                            <button class="mc-button mc-button-red" onclick="deleteBodyLine(${index})">DEL</button>
+                        </div>
+                    </div>
+                    <textarea class="mc-textarea"
+                        placeholder="Body text (supports MiniMessage)"
+                        oninput="updateBodyLine(${index}, this.value)"
+                        style="margin-top: 8px;">${escapeHtml(line.text)}</textarea>
+                </div>
+            `).join('');
+        }
+
+        function updateBodyLine(index, value) {
+            currentDialog.body[index].text = value;
+            updatePreview();
+        }
+
+        function deleteBodyLine(index) {
+            currentDialog.body.splice(index, 1);
+            renderBodyLines();
+            updatePreview();
+        }
+
+        function addTextField() {
+            currentDialog.inputs.textFields.push({
+                placeholder: '',
+                maxLength: 50,
+                maxLines: 1,
+                key: 'field_' + Date.now(),
+                label: 'Text Field',
+                order: currentDialog.inputs.textFields.length + 1
+            });
+            renderTextFields();
+            updatePreview();
+        }
+
+        function renderTextFields() {
+            const container = document.getElementById('textfields-container');
+            if (currentDialog.inputs.textFields.length === 0) {
+                container.innerHTML = '<div class="empty-state">No text fields</div>';
+                return;
+            }
+
+            container.innerHTML = currentDialog.inputs.textFields.map((field, index) => `
+                <div class="mc-item">
+                    <div class="mc-item-header">
+                        <span class="mc-item-title">Text Field ${index + 1}</span>
+                        <div class="mc-item-actions">
+                            <button class="mc-button mc-button-red" onclick="deleteTextField(${index})">DEL</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label class="mc-label">Label:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(field.label)}"
+                            oninput="updateTextField(${index}, 'label', this.value)">
+
+                        <label class="mc-label">Key (placeholder variable):</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(field.key)}"
+                            oninput="updateTextField(${index}, 'key', this.value)">
+
+                        <label class="mc-label">Placeholder:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(field.placeholder)}"
+                            oninput="updateTextField(${index}, 'placeholder', this.value)">
+
+                        <label class="mc-label">Max Length:</label>
+                        <input type="number" class="mc-input" value="${field.maxLength}"
+                            oninput="updateTextField(${index}, 'maxLength', parseInt(this.value) || 50)">
+
+                        <label class="mc-label">Max Lines:</label>
+                        <input type="number" class="mc-input" value="${field.maxLines}"
+                            oninput="updateTextField(${index}, 'maxLines', parseInt(this.value) || 1)">
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateTextField(index, field, value) {
+            currentDialog.inputs.textFields[index][field] = value;
+            updatePreview();
+        }
+
+        function deleteTextField(index) {
+            currentDialog.inputs.textFields.splice(index, 1);
+            renderTextFields();
+            updatePreview();
+        }
+
+        function addSelect() {
+            currentDialog.inputs.selects.push({
+                options: [],
+                key: 'select_' + Date.now(),
+                label: 'Dropdown',
+                order: currentDialog.inputs.selects.length + 1
+            });
+            renderSelects();
+            updatePreview();
+        }
+
+        function renderSelects() {
+            const container = document.getElementById('selects-container');
+            if (currentDialog.inputs.selects.length === 0) {
+                container.innerHTML = '<div class="empty-state">No dropdowns</div>';
+                return;
+            }
+
+            container.innerHTML = currentDialog.inputs.selects.map((select, index) => `
+                <div class="mc-item">
+                    <div class="mc-item-header">
+                        <span class="mc-item-title">Dropdown ${index + 1}</span>
+                        <div class="mc-item-actions">
+                            <button class="mc-button mc-button-green" onclick="addSelectOption(${index})">+OPT</button>
+                            <button class="mc-button mc-button-red" onclick="deleteSelect(${index})">DEL</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label class="mc-label">Label:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(select.label)}"
+                            oninput="updateSelect(${index}, 'label', this.value)">
+
+                        <label class="mc-label">Key (placeholder variable):</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(select.key)}"
+                            oninput="updateSelect(${index}, 'key', this.value)">
+
+                        <label class="mc-label">Options (${select.options.length}):</label>
+                        ${select.options.map((opt, optIndex) => `
+                            <div class="mc-item" style="padding: 8px; margin-bottom: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                    <span style="font-size: 12px; color: #FFFF55;">Option ${optIndex + 1}</span>
+                                    <button class="mc-button mc-button-red" onclick="deleteSelectOption(${index}, ${optIndex})" style="padding: 6px 12px; font-size: 11px;">DEL</button>
+                                </div>
+                                <label class="mc-label" style="font-size: 11px;">Value:</label>
+                                <input type="text" class="mc-input" value="${escapeHtml(opt.value)}"
+                                    oninput="updateSelectOption(${index}, ${optIndex}, 'value', this.value)" style="font-size: 12px; padding: 8px;">
+
+                                <label class="mc-label" style="font-size: 11px;">Display:</label>
+                                <input type="text" class="mc-input" value="${escapeHtml(opt.display)}"
+                                    oninput="updateSelectOption(${index}, ${optIndex}, 'display', this.value)" style="font-size: 12px; padding: 8px;">
+
+                                <div class="mc-checkbox-group" style="padding: 6px;">
+                                    <input type="checkbox" class="mc-checkbox" ${opt.initial ? 'checked' : ''}
+                                        onchange="updateSelectOption(${index}, ${optIndex}, 'initial', this.checked)">
+                                    <label class="mc-label" style="margin: 0; font-size: 11px;">Default Selection</label>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSelect(index, field, value) {
+            currentDialog.inputs.selects[index][field] = value;
+            updatePreview();
+        }
+
+        function updateSelectOption(selectIndex, optionIndex, field, value) {
+            currentDialog.inputs.selects[selectIndex].options[optionIndex][field] = value;
+            updatePreview();
+        }
+
+        function deleteSelectOption(selectIndex, optionIndex) {
+            currentDialog.inputs.selects[selectIndex].options.splice(optionIndex, 1);
+            renderSelects();
+            updatePreview();
+        }
+
+        function deleteSelect(index) {
+            currentDialog.inputs.selects.splice(index, 1);
+            renderSelects();
+            updatePreview();
+        }
+
+        function addSelectOption(selectIndex) {
+            currentDialog.inputs.selects[selectIndex].options.push({
+                value: '',
+                display: '',
+                initial: false
+            });
+            renderSelects();
+            updatePreview();
+        }
+
+        function closeOptionModal() {
+            document.getElementById('option-modal').classList.remove('show');
+            currentSelectIndex = -1;
+        }
+
+        function confirmOption() {
+            // Not used anymore - keeping for compatibility
+        }
+
+        function addCheckbox() {
+            currentDialog.inputs.checkboxes.push({
+                initial: false,
+                key: 'checkbox_' + Date.now(),
+                label: 'Checkbox',
+                order: currentDialog.inputs.checkboxes.length + 1
+            });
+            renderCheckboxes();
+            updatePreview();
+        }
+
+        function renderCheckboxes() {
+            const container = document.getElementById('checkboxes-container');
+            if (currentDialog.inputs.checkboxes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No checkboxes</div>';
+                return;
+            }
+
+            container.innerHTML = currentDialog.inputs.checkboxes.map((checkbox, index) => `
+                <div class="mc-item">
+                    <div class="mc-item-header">
+                        <span class="mc-item-title">Checkbox ${index + 1}</span>
+                        <div class="mc-item-actions">
+                            <button class="mc-button mc-button-red" onclick="deleteCheckbox(${index})">DEL</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label class="mc-label">Label:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(checkbox.label)}"
+                            oninput="updateCheckbox(${index}, 'label', this.value)">
+
+                        <label class="mc-label">Key (placeholder variable):</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(checkbox.key)}"
+                            oninput="updateCheckbox(${index}, 'key', this.value)">
+
+                        <div class="mc-checkbox-group">
+                            <input type="checkbox" class="mc-checkbox" ${checkbox.initial ? 'checked' : ''}
+                                onchange="updateCheckbox(${index}, 'initial', this.checked)">
+                            <label class="mc-label" style="margin: 0;">Checked by default</label>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCheckbox(index, field, value) {
+            currentDialog.inputs.checkboxes[index][field] = value;
+            updatePreview();
+        }
+
+        function deleteCheckbox(index) {
+            currentDialog.inputs.checkboxes.splice(index, 1);
+            renderCheckboxes();
+            updatePreview();
+        }
+
+        function addButton() {
+            currentDialog.buttons.push({
+                label: 'Button',
+                tooltip: '',
+                actions: []
+            });
+            renderButtons();
+            updatePreview();
+        }
+
+        function renderButtons() {
+            const container = document.getElementById('buttons-container');
+            if (currentDialog.buttons.length === 0) {
+                container.innerHTML = '<div class="empty-state">No buttons</div>';
+                return;
+            }
+
+            container.innerHTML = currentDialog.buttons.map((button, index) => `
+                <div class="mc-item">
+                    <div class="mc-item-header">
+                        <span class="mc-item-title">Button ${index + 1} <span class="mc-badge mc-badge-blue">${button.actions.length} actions</span></span>
+                        <div class="mc-item-actions">
+                            <button class="mc-button mc-button-green" onclick="addButtonAction(${index})">+ACT</button>
+                            <button class="mc-button mc-button-red" onclick="deleteButton(${index})">DEL</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <label class="mc-label">Label:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(button.label)}"
+                            oninput="updateButton(${index}, 'label', this.value)">
+
+                        <label class="mc-label">Tooltip:</label>
+                        <input type="text" class="mc-input" value="${escapeHtml(button.tooltip)}"
+                            oninput="updateButton(${index}, 'tooltip', this.value)">
+
+                        ${button.actions.length > 0 ? `
+                            <label class="mc-label">Actions:</label>
+                            <div class="action-preview">
+                                ${button.actions.map((action, aIndex) => `
+                                    <div class="action-item">
+                                        <span class="action-type">${action.name}</span>
+                                        <span class="action-data">${escapeHtml(action.data.substring(0, 30))}${action.data.length > 30 ? '...' : ''}</span>
+                                        <button class="mc-button mc-button-red" onclick="deleteButtonAction(${index}, ${aIndex})">×</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateButton(index, field, value) {
+            currentDialog.buttons[index][field] = value;
+            updatePreview();
+        }
+
+        function deleteButton(index) {
+            currentDialog.buttons.splice(index, 1);
+            renderButtons();
+            updatePreview();
+        }
+
+        function addButtonAction(buttonIndex) {
+            currentButtonIndex = buttonIndex;
+            updateActionFields();
+            document.getElementById('action-modal').classList.add('show');
+        }
+
+        function closeActionModal() {
+            document.getElementById('action-modal').classList.remove('show');
+            currentButtonIndex = -1;
+        }
+
+        function confirmAction() {
+            const type = document.getElementById('action-type').value;
+            const data = document.getElementById('action-data').value;
+
+            if (!data) {
+                return; // Just don't add if empty
+            }
+
+            currentDialog.buttons[currentButtonIndex].actions.push({
+                name: type,
+                data: data
+            });
+
+            document.getElementById('action-data').value = '';
+            renderButtons();
+            updatePreview();
+            closeActionModal();
+        }
+
+        function deleteButtonAction(buttonIndex, actionIndex) {
+            currentDialog.buttons[buttonIndex].actions.splice(actionIndex, 1);
+            renderButtons();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            currentDialog.id = document.getElementById('dialog-id').value;
+            currentDialog.title = document.getElementById('dialog-title').value;
+            currentDialog.canCloseWithEscape = document.getElementById('can-close-escape').checked;
+
+            updateVisualPreview();
+            updateJSONPreview();
+        }
+
+        function updateVisualPreview() {
+            const preview = document.getElementById('preview-container');
+
+            let html = `
+                <div class="preview-title">${parseMinimessage(currentDialog.title)}</div>
+                <div class="preview-body">
+                    ${currentDialog.body.map(line => `<p>${parseMinimessage(line.text)}</p>`).join('') || '<p style="color: #888;">No body text</p>'}
+                </div>
+            `;
+
+            if (currentDialog.inputs.textFields.length > 0 || currentDialog.inputs.selects.length > 0 || currentDialog.inputs.checkboxes.length > 0) {
+                html += '<div class="preview-inputs">';
+                [...currentDialog.inputs.textFields, ...currentDialog.inputs.selects, ...currentDialog.inputs.checkboxes]
+                    .sort((a, b) => a.order - b.order)
+                    .forEach(input => {
+                        html += '<div class="preview-input-item">';
+                        html += `<span class="preview-input-label">${parseMinimessage(input.label)}</span>`;
+
+                        if (input.maxLength !== undefined) {
+                            html += `<input type="text" class="mc-input" placeholder="${input.placeholder}" style="margin: 0;">`;
+                        } else if (input.options !== undefined) {
+                            html += '<select class="mc-select" style="margin: 0;">';
+                            input.options.forEach(opt => {
+                                html += `<option ${opt.initial ? 'selected' : ''}>${parseMinimessage(opt.display)}</option>`;
+                            });
+                            html += '</select>';
+                        } else {
+                            html += `<input type="checkbox" class="mc-checkbox" ${input.initial ? 'checked' : ''}>`;
+                        }
+                        html += '</div>';
+                    });
+                html += '</div>';
+            }
+
+            if (currentDialog.buttons.length > 0) {
+                html += '<div class="preview-buttons">';
+                currentDialog.buttons.forEach(button => {
+                    html += `<div class="preview-button" data-tooltip="${escapeHtml(stripMinimessage(button.tooltip))}">${parseMinimessage(button.label)}</div>`;
+                });
+                html += '</div>';
+            }
+
+            preview.innerHTML = html;
+        }
+
+        function updateJSONPreview() {
+            const json = JSON.stringify(currentDialog, null, 2);
+            document.getElementById('json-preview').textContent = json;
+        }
+
+        function parseMinimessage(text) {
+            if (!text) return '';
+
+            // Minecraft color name mappings
+            const colorMap = {
+                'black': '#000000',
+                'dark_blue': '#0000AA',
+                'dark_green': '#00AA00',
+                'dark_aqua': '#00AAAA',
+                'dark_red': '#AA0000',
+                'dark_purple': '#AA00AA',
+                'gold': '#FFAA00',
+                'gray': '#AAAAAA',
+                'dark_gray': '#555555',
+                'blue': '#5555FF',
+                'green': '#55FF55',
+                'aqua': '#55FFFF',
+                'red': '#FF5555',
+                'light_purple': '#FF55FF',
+                'yellow': '#FFFF55',
+                'white': '#FFFFFF'
+            };
+
+            text = text.replace(/<b>(.*?)<\/b>/g, '<strong>$1</strong>');
+            text = text.replace(/<i>(.*?)<\/i>/g, '<em>$1</em>');
+            text = text.replace(/<u>(.*?)<\/u>/g, '<u>$1</u>');
+
+            // Replace named colors with hex codes
+            text = text.replace(/<color:(\w+)>(.*?)<\/color>/g, (match, colorName, content) => {
+                const hexColor = colorMap[colorName.toLowerCase()] || colorName;
+                return `<span style="color: ${hexColor};">${content}</span>`;
+            });
+
+            text = text.replace(/<color:(#[0-9a-fA-F]{6})>(.*?)<\/color>/g, '<span style="color: $1;">$2</span>');
+            text = text.replace(/<gradient:(#[0-9a-fA-F]{6}):.*?>(.*?)<\/gradient>/g, '<span style="color: $1;">$2</span>');
+            text = text.replace(/<rainbow>(.*?)<\/rainbow>/g, '<span style="background: linear-gradient(to right, red, orange, yellow, green, blue, violet); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">$1</span>');
+            return text;
+        }
+
+        function stripMinimessage(text) {
+            if (!text) return '';
+            // Remove all MiniMessage formatting tags to get plain text
+            text = text.replace(/<\/?b>/g, '');
+            text = text.replace(/<\/?i>/g, '');
+            text = text.replace(/<\/?u>/g, '');
+            text = text.replace(/<color:[^>]+>/g, '');
+            text = text.replace(/<\/color>/g, '');
+            text = text.replace(/<gradient:[^>]+>/g, '');
+            text = text.replace(/<\/gradient>/g, '');
+            text = text.replace(/<\/?rainbow>/g, '');
+            text = text.replace(/<click:[^>]+>/g, '');
+            text = text.replace(/<\/click>/g, '');
+            return text;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function downloadJSON() {
+            updatePreview();
+            const json = JSON.stringify(currentDialog, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentDialog.id}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    currentDialog = JSON.parse(e.target.result);
+                    loadDialogToForm();
+                } catch (error) {
+                    console.error('Error loading dialog:', error);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadDialogToForm() {
+            document.getElementById('dialog-id').value = currentDialog.id || '';
+            document.getElementById('dialog-title').value = currentDialog.title || '';
+            document.getElementById('can-close-escape').checked = currentDialog.canCloseWithEscape !== false;
+
+            renderBodyLines();
+            renderTextFields();
+            renderSelects();
+            renderCheckboxes();
+            renderButtons();
+            updatePreview();
+        }
+
+        function loadExample() {
+            currentDialog = {
+                "id": "welcome_example",
+                "title": "<u><b><color:#ff7300>Welcome!</color></b></u>",
+                "canCloseWithEscape": false,
+                "body": [
+                    {"text": "<color:#ffd199><i>Example dialog<i></color>"},
+                    {"text": ""},
+                    {"text": "This is a demo of FancyDialogs!"}
+                ],
+                "inputs": {
+                    "textFields": [{
+                        "placeholder": "",
+                        "maxLength": 50,
+                        "maxLines": 1,
+                        "key": "name",
+                        "label": "<color:#ff7300>Your name?</color>",
+                        "order": 1
+                    }],
+                    "selects": [{
+                        "options": [
+                            {"value": "red", "display": "<color:red>Red</color>", "initial": true},
+                            {"value": "blue", "display": "<color:blue>Blue</color>", "initial": false}
+                        ],
+                        "key": "color",
+                        "label": "<color:#ff7300>Favorite color?</color>",
+                        "order": 2
+                    }],
+                    "checkboxes": [{
+                        "initial": true,
+                        "key": "cool",
+                        "label": "<color:#ff7300>Are you cool?</color>",
+                        "order": 3
+                    }]
+                },
+                "buttons": [
+                    {"label": "<color:#ff4f19>Close</color>", "tooltip": "Exit", "actions": []},
+                    {"label": "<color:#ffd000>Show Info</color>", "tooltip": "Display", "actions": [
+                        {"name": "message", "data": "Hi {name}! Color: {color}"}
+                    ]}
+                ]
+            };
+            loadDialogToForm();
+        }
+
+        function resetDialog() {
+            currentDialog = {
+                id: 'my_dialog',
+                title: '<b><color:#ff7300>My Dialog</color></b>',
+                canCloseWithEscape: true,
+                body: [],
+                inputs: { textFields: [], selects: [], checkboxes: [] },
+                buttons: []
+            };
+            loadDialogToForm();
+        }
+
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'dialog-id' || e.target.id === 'dialog-title' || e.target.id === 'can-close-escape') {
+                updatePreview();
+            }
+        });
+    </script>
+</body>
+</html>
