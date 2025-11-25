@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:notice",
+  "title": {
+    "text": "Quick Actions Trigger"
+  },
+  "body": [
+    {
+      "type": "minecraft:plain_message",
+      "contents": {
+        "text": "Press the button below to open Quick Actions"
+      }
+    }
+  ],
+  "button": {
+    "label": {
+      "text": "Open Quick Actions"
+    },
+    "action": {
+      "type": "custom",
+      "id": "fancydialogs_dialog_action:quick_actions_trigger",
+      "payload": {
+        "dialog_id": "quick_actions_trigger",
+        "button_id": "quick_actions_button"
+      }
+    }
+  }
+}

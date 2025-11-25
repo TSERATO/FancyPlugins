@@ -35,19 +35,37 @@ public class CustomClickActionPacketListener {
             return; // Ignore if the packet is not of the expected type
         }
 
+        FancyDialogsPlugin.get().getFancyLogger().info("Received custom click packet with ID: " + packet.getId());
+
         if (!packet.getId().namespace().equals("fancysitula") && !packet.getId().namespace().equals("fancydialogs_dialog_action")) {
+            FancyDialogsPlugin.get().getFancyLogger().info("Ignoring packet - namespace is: " + packet.getId().namespace());
             return; // Ignore packets not related to FancyDialogs
         }
 
         packet.getPayload().forEach((key, value) -> {
-            FancyDialogsPlugin.get().getFancyLogger().debug("Click action data Key: " + key + " value: " + value.toString());
+            FancyDialogsPlugin.get().getFancyLogger().info("Click action data Key: " + key + " value: " + value.toString());
         });
 
         String dialogId = packet.getPayload().get("dialog_id");
         String buttonId = packet.getPayload().get("button_id");
 
+        FancyDialogsPlugin.get().getFancyLogger().info("Dialog ID: " + dialogId + ", Button ID: " + buttonId);
+
         if (dialogId == null || buttonId == null) {
             return; // Missing necessary information
+        }
+
+        // Intercept quick_actions_trigger and open the FancyDialogs quick_actions dialog instead
+        if ("quick_actions_trigger".equals(dialogId) && "quick_actions_button".equals(buttonId)) {
+            FancyDialogsPlugin.get().getFancyLogger().debug("Intercepted quick_actions_trigger, opening FancyDialogs quick_actions dialog");
+            String quickActionsDialogId = FancyDialogsPlugin.get().getFancyDialogsConfig().getQuickActionsDialogID();
+            Dialog quickActionsDialog = FancyDialogsPlugin.get().getDialogRegistry().get(quickActionsDialogId);
+            if (quickActionsDialog != null) {
+                quickActionsDialog.open(event.player());
+            } else {
+                FancyDialogsPlugin.get().getFancyLogger().warn("Quick Actions dialog with ID '" + quickActionsDialogId + "' not found.");
+            }
+            return; // Don't process further
         }
 
         new DialogButtonClickedEvent(event.player(), dialogId, buttonId, packet.getPayload()).callEvent();
